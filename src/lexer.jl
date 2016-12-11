@@ -430,7 +430,8 @@ function lex_digit(l::Lexer)
             break
         end
         if !accept_batch(l, isdigit)
-            return emit_error(l)
+            backup!(l)
+            return emit(l, Tokens.INTEGER)
         end
     end
 
