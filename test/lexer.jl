@@ -118,3 +118,6 @@ end
 
 # test roundtrippability
 @test join(untokenize.(collect(tokenize(str)))) == str
+
+# test #5
+@test Tokens.kind.(collect(tokenize("1.23..3.21"))) == [T.FLOAT,T.OP,T.FLOAT,T.ENDMARKER]
