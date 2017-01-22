@@ -133,6 +133,9 @@ end
 # test #5
 @test Tokens.kind.(collect(tokenize("1.23..3.21"))) == [T.FLOAT,T.OP,T.FLOAT,T.ENDMARKER]
 
+# issue #17
+@test collect(tokenize(">> "))[1].val==">>"
+
 
 # test added operators
 @test collect(tokenize("1+=2"))[2].kind == Tokenize.Tokens.PLUS_EQ
