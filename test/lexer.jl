@@ -136,7 +136,6 @@ end
 # issue #17
 @test collect(tokenize(">> "))[1].val==">>"
 
-
 # test added operators
 @test collect(tokenize("1+=2"))[2].kind == Tokenize.Tokens.PLUS_EQ
 @test collect(tokenize("1-=2"))[2].kind == Tokenize.Tokens.MINUS_EQ
