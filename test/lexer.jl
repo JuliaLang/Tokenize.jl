@@ -132,3 +132,16 @@ end
 
 # test #5
 @test Tokens.kind.(collect(tokenize("1.23..3.21"))) == [T.FLOAT,T.OP,T.FLOAT,T.ENDMARKER]
+
+
+# test added operators
+@test collect(tokenize("1+=2"))[2].kind == Tokenize.Tokens.PLUS_EQ
+@test collect(tokenize("1-=2"))[2].kind == Tokenize.Tokens.MINUS_EQ
+@test collect(tokenize("1:=2"))[2].kind == Tokenize.Tokens.COLON_EQ
+@test collect(tokenize("1*=2"))[2].kind == Tokenize.Tokens.STAR_EQ
+@test collect(tokenize("1^=2"))[2].kind == Tokenize.Tokens.CIRCUMFLEX_EQ
+@test collect(tokenize("1÷=2"))[2].kind == Tokenize.Tokens.DIVISION_EQ
+@test collect(tokenize("1\\=2"))[2].kind == Tokenize.Tokens.BACKSLASH_EQ
+@test collect(tokenize("1\$=2"))[2].kind == Tokenize.Tokens.EX_OR_EQ
+@test collect(tokenize("1-->2"))[2].kind == Tokenize.Tokens.RIGHT_ARROW
+@test collect(tokenize("1>:2"))[2].kind == Tokenize.Tokens.GREATER_COLON
