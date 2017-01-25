@@ -147,3 +147,8 @@ end
 @test collect(tokenize("1\$=2"))[2].kind == Tokenize.Tokens.EX_OR_EQ
 @test collect(tokenize("1-->2"))[2].kind == Tokenize.Tokens.RIGHT_ARROW
 @test collect(tokenize("1>:2"))[2].kind == Tokenize.Tokens.GREATER_COLON
+
+@test collect(tokenize("1 in 2"))[3].kind == Tokenize.Tokens.IN
+@test collect(tokenize("1 in[1]"))[3].kind == Tokenize.Tokens.IN
+@test collect(tokenize("1 isa 2"))[3].kind == Tokenize.Tokens.ISA
+@test collect(tokenize("1 isa[2]"))[3].kind == Tokenize.Tokens.ISA
