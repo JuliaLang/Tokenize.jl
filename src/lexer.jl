@@ -301,7 +301,7 @@ function next_token(l::Lexer)
     c = readchar(l)
 
     if eof(c); return emit(l, Tokens.ENDMARKER)
-    elseif iswhitespace(c); return lex_whitespace(l)
+    elseif iswhitespace(c) || c=='#'; return lex_ws_comment(l)
     elseif c == '['; return emit(l, Tokens.LSQUARE)
     elseif c == ']'; return emit(l, Tokens.RSQUARE)
     elseif c == '{'; return emit(l, Tokens.LBRACE)
@@ -316,7 +316,6 @@ function next_token(l::Lexer)
     elseif c == '?'; return emit(l, Tokens.CONDITIONAL)
     elseif c == '$'; return lex_xor(l);
     elseif c == '~'; return emit(l, Tokens.APPROX)
-    elseif c == '#'; return lex_comment(l)
     elseif c == '='; return lex_equal(l)
     elseif c == '!'; return lex_exclaim(l)
     elseif c == '>'; return lex_greater(l)
@@ -339,6 +338,59 @@ function next_token(l::Lexer)
     elseif is_identifier_start_char(c); return lex_identifier(l)
     elseif (k = get(UNICODE_OPS, c, Tokens.ERROR)) != Tokens.ERROR return emit(l, k)
     else emit_error(l)
+    end
+end
+
+function lex_ws_comment(l::Lexer)
+    if prevchar(l)=='#'
+        read_comment(l)
+    else
+        read_whitespace(l)
+    end
+    while iswhitespace(peekchar(l)) || peekchar(l)=='#'
+        readchar(l)
+        if prevchar(l)=='#'
+            read_comment(l)
+        else
+            read_whitespace(l)
+        end
+    end
+
+    return emit(l, Tokens.WHITESPACE)
+end
+
+
+function read_whitespace(l::Lexer)
+    accept_batch(l, iswhitespace)
+end
+
+function read_comment(l::Lexer)
+    if readchar(l) != '='
+        while true
+            c = readchar(l)
+            if c == '\n' || eof(c)
+                backup!(l)
+                break
+            end
+        end
+    else
+        c = readchar(l) # consume the '='
+        n_start, n_end = 1, 0
+        while true
+            if eof(c)
+                return emit_error(l, Tokens.EOF_MULTICOMMENT)
+            end
+            nc = readchar(l)
+            if c == '#' && nc == '='
+                n_start += 1
+            elseif c == '=' && nc == '#'
+                n_end += 1
+            end
+            if n_start == n_end
+                break
+            end
+            c = nc
+        end
     end
 end
 
