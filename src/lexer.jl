@@ -341,6 +341,7 @@ function next_token(l::Lexer)
     end
 end
 
+# Lexes a contiguous group of whitespace/comments into a single token
 function lex_ws_comment(l::Lexer)
     if prevchar(l)=='#'
         read_comment(l)
@@ -388,43 +389,6 @@ function read_comment(l::Lexer)
             end
             if n_start == n_end
                 break
-            end
-            c = nc
-        end
-    end
-end
-
-
-# Lex whitespace, a whitespace char has been consumed
-function lex_whitespace(l::Lexer)
-    accept_batch(l, iswhitespace)
-    return emit(l, Tokens.WHITESPACE)
-end
-
-function lex_comment(l::Lexer)
-    if readchar(l) != '='
-        while true
-            c = readchar(l)
-            if c == '\n' || eof(c)
-                backup!(l)
-                return emit(l, Tokens.COMMENT)
-            end
-        end
-    else
-        c = readchar(l) # consume the '='
-        n_start, n_end = 1, 0
-        while true
-            if eof(c)
-                return emit_error(l, Tokens.EOF_MULTICOMMENT)
-            end
-            nc = readchar(l)
-            if c == '#' && nc == '='
-                n_start += 1
-            elseif c == '=' && nc == '#'
-                n_end += 1
-            end
-            if n_start == n_end
-                return emit(l, Tokens.COMMENT)
             end
             c = nc
         end
