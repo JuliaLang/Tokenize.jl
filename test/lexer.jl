@@ -150,6 +150,7 @@ end
 
 @test collect(tokenize("1 in 2"))[3].kind == Tokenize.Tokens.IN
 @test collect(tokenize("1 in[1]"))[3].kind == Tokenize.Tokens.IN
+
 if VERSION >= v"0.6.0-dev.1471" 
     @test collect(tokenize("1 isa 2"))[3].kind == Tokenize.Tokens.ISA
     @test collect(tokenize("1 isa[2]"))[3].kind == Tokenize.Tokens.ISA
@@ -157,3 +158,4 @@ else
     @test collect(tokenize("1 isa 2"))[3].kind == Tokenize.Tokens.IDENTIFIER
     @test collect(tokenize("1 isa[2]"))[3].kind == Tokenize.Tokens.IDENTIFIER
 end
+
