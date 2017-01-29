@@ -301,7 +301,7 @@ function next_token(l::Lexer)
     c = readchar(l)
 
     if eof(c); return emit(l, Tokens.ENDMARKER)
-    elseif iswhitespace(c); return lex_whitespace(l)
+    elseif iswhitespace(c) || c=='#'; return lex_ws_comment(l)
     elseif c == '['; return emit(l, Tokens.LSQUARE)
     elseif c == ']'; return emit(l, Tokens.RSQUARE)
     elseif c == '{'; return emit(l, Tokens.LBRACE)
@@ -316,7 +316,6 @@ function next_token(l::Lexer)
     elseif c == '?'; return emit(l, Tokens.CONDITIONAL)
     elseif c == '$'; return lex_xor(l);
     elseif c == '~'; return emit(l, Tokens.APPROX)
-    elseif c == '#'; return lex_comment(l)
     elseif c == '='; return lex_equal(l)
     elseif c == '!'; return lex_exclaim(l)
     elseif c == '>'; return lex_greater(l)
@@ -343,20 +342,37 @@ function next_token(l::Lexer)
     end
 end
 
+# Lexes a contiguous group of whitespace/comments into a single token
+function lex_ws_comment(l::Lexer)
+    if prevchar(l)=='#'
+        read_comment(l)
+    else
+        read_whitespace(l)
+    end
+    while iswhitespace(peekchar(l)) || peekchar(l)=='#'
+        readchar(l)
+        if prevchar(l)=='#'
+            read_comment(l)
+        else
+            read_whitespace(l)
+        end
+    end
 
-# Lex whitespace, a whitespace char has been consumed
-function lex_whitespace(l::Lexer)
-    accept_batch(l, iswhitespace)
     return emit(l, Tokens.WHITESPACE)
 end
 
-function lex_comment(l::Lexer)
+
+function read_whitespace(l::Lexer)
+    accept_batch(l, iswhitespace)
+end
+
+function read_comment(l::Lexer)
     if readchar(l) != '='
         while true
             c = readchar(l)
             if c == '\n' || eof(c)
                 backup!(l)
-                return emit(l, Tokens.COMMENT)
+                break
             end
         end
     else
@@ -373,7 +389,7 @@ function lex_comment(l::Lexer)
                 n_end += 1
             end
             if n_start == n_end
-                return emit(l, Tokens.COMMENT)
+                break
             end
             c = nc
         end
