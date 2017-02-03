@@ -215,7 +215,7 @@ end
 end
 
 
-@testset "primes"
+@testset "primes" begin
     T = collect(tokenize(
     """
     ImageMagick.save(fn, reinterpret(ARGB32, [0xf0884422]''))
