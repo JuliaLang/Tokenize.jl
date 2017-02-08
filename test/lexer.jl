@@ -229,7 +229,7 @@ end
     @test all(x->x.val=="'", collect(tokenize("''''"))[1:4])
 end
 
-@testset "in/isa bytelength"
+@testset "in/isa bytelength" begin
     t = collect(tokenize("x in y"))[3]
     @test t.endbyte-t.startbyte==2
 end
