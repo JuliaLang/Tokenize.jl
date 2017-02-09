@@ -279,7 +279,7 @@ emit{IO}(l::Lexer{IO, RawToken}, kind::Kind, str::String, err::TokenError=Tokens
 Returns an `ERROR` token with error `err` and starts a new `Token`.
 """
 emit_error{IO}(l::Lexer{IO, Token},    err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, extract_tokenstring(l), err)
-emit_error{IO}(l::Lexer{IO, RawToken}, err::TokenError=Tokens.UNKNOWN) = emit(l, err)
+emit_error{IO}(l::Lexer{IO, RawToken}, err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, true, err)
 
 
 """
