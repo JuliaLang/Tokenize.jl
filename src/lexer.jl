@@ -7,7 +7,7 @@ using Compat
 import Compat.String
 
 import ..Tokens
-import ..Tokens: Token, Kind, TokenError, UNICODE_OPS
+import ..Tokens: AbstractToken, RawToken, Token, Kind, TokenError, UNICODE_OPS
 
 export tokenize
 
@@ -21,7 +21,7 @@ end
 ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
 
-type Lexer{IO_t <: Union{IO, AbstractString}}
+type Lexer{IO_t <: Union{IO, AbstractString}, T}
     io::IO_t
 
     token_start_row::Int
@@ -33,11 +33,10 @@ type Lexer{IO_t <: Union{IO, AbstractString}}
     current_row::Int
     current_col::Int
     current_pos::Int64
-
     last_token::Tokens.Kind
 end
 
-Lexer(io) = Lexer(io, 1, 1, Int64(-1), Int64(0), 1, 1, Int64(1), Tokens.ERROR)
+Lexer{T <: AbstractToken}(io, toktype::Type{T} = Token) = Lexer{typeof(io), toktype}(io, 1, 1, Int64(-1), Int64(0), 1, 1, Int64(1), Tokens.ERROR)
 
 """
     tokenize(x)
@@ -45,13 +44,14 @@ Lexer(io) = Lexer(io, 1, 1, Int64(-1), Int64(0), 1, 1, Int64(1), Tokens.ERROR)
 Returns an `Iterable` containing the tokenized input. Can be reverted by e.g.
 `join(untokenize.(tokenize(x)))`.
 """
-tokenize(x) = Lexer(x)
+tokenize{T <: AbstractToken}(x, toktype::Type{T} = Token) = Lexer(x, toktype)
 
 # Iterator interface
-Base.iteratorsize{IO_t}(::Type{Lexer{IO_t}}) = Base.SizeUnknown()
-Base.iteratoreltype{IO_t}(::Type{Lexer{IO_t}}) = Base.HasEltype()
+Base.iteratorsize{T <: Lexer}(::Type{T}) = Base.SizeUnknown()
+Base.iteratoreltype{T <: Lexer}(::Type{T}) = Base.HasEltype()
 
-Base.eltype{IO_t}(::Type{Lexer{IO_t}}) = Token
+Base.eltype{IO_t, T}(::Type{Lexer{IO_t, T}}) = T
+
 
 function Base.start(l::Lexer)
     seekstart(l)
@@ -248,7 +248,7 @@ end
 
 Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
-function emit(l::Lexer, kind::Kind,
+function emit{IO}(l::Lexer{IO, Token}, kind::Kind,
               str::String=extract_tokenstring(l), err::TokenError=Tokens.NO_ERR)
     tok = Token(kind, (l.token_start_row, l.token_start_col),
                 (l.current_row, l.current_col - 1),
@@ -260,21 +260,34 @@ function emit(l::Lexer, kind::Kind,
     return tok
 end
 
+function emit{IO}(l::Lexer{IO, RawToken}, kind::Kind, do_extract = true, err::TokenError=Tokens.NO_ERR)
+    do_extract && extract_tokenstring(l, false)
+    tok = RawToken(kind, (l.token_start_row, l.token_start_col),
+                (l.current_row, l.current_col - 1),
+                startpos(l), position(l) - 1,
+                err)
+    @debug "emitted token: $tok:"
+    l.last_token = kind
+    start_token!(l)
+    return tok
+end
+emit{IO}(l::Lexer{IO, RawToken}, kind::Kind, str::String, err::TokenError=Tokens.NO_ERR) = emit(l, kind, false, err)
+
 """
     emit_error(l::Lexer, err::TokenError=Tokens.UNKNOWN)
 
 Returns an `ERROR` token with error `err` and starts a new `Token`.
 """
-function emit_error(l::Lexer, err::TokenError=Tokens.UNKNOWN)
-    return emit(l, Tokens.ERROR, extract_tokenstring(l), err)
-end
+emit_error{IO}(l::Lexer{IO, Token},    err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, extract_tokenstring(l), err)
+emit_error{IO}(l::Lexer{IO, RawToken}, err::TokenError=Tokens.UNKNOWN) = emit(l, err)
+
 
 """
     extract_tokenstring(l::Lexer)
 
 Returns all characters since the start of the current `Token` as a `String`.
 """
-function extract_tokenstring(l::Lexer)
+function extract_tokenstring(l::Lexer, do_write = true)
     global charstore
     curr_pos = position(l)
     seek2startpos!(l)
@@ -285,12 +298,13 @@ function extract_tokenstring(l::Lexer)
         if c == '\n'
             l.current_row += 1
             l.current_col = 1
-         end
-        write(charstore, c)
+        end
+        do_write && write(charstore, c)
     end
     str = String(take!(charstore))
     return str
 end
+
 
 """
     next_token(l::Lexer)
@@ -536,44 +550,26 @@ function lex_xor(l::Lexer)
 end
 
 function lex_i(l::Lexer)
-    str = lex_identifier(l)
-    if str.val=="in"
-        l.last_token = Tokens.IN
-        start_token!(l)
-        return Token(Tokens.IN, str.startpos,
-                str.endpos,
-                str.startbyte, str.endbyte,
-                str.val, str.token_error)
-    elseif (VERSION >= v"0.6.0-dev.1471" && str.val == "isa")
-        l.last_token = Tokens.ISA
-        start_token!(l)
-        return Token(Tokens.ISA, str.startpos,
-                str.endpos,
-                str.startbyte, str.endbyte,
-                str.val, str.token_error)
+    accept_batch(l, is_identifier_char)
+    str = extract_tokenstring(l)
+    if str == "in"
+        return emit(l, Tokens.IN)
+    elseif (VERSION >= v"0.6.0-dev.1471" && str == "isa")
+        return emit(l, Tokens.ISA)
     else
-        return str
+        return emit(l, get(Tokens.KEYWORDS, str, Tokens.IDENTIFIER), str)
     end
 end
 
 function lex_bool(l::Lexer)
-    str = lex_identifier(l)
-    if str.val=="true"
-        l.last_token = Tokens.TRUE
-        start_token!(l)
-        return Token(Tokens.TRUE, str.startpos,
-                str.endpos,
-                str.startbyte, str.endbyte,
-                str.val, str.token_error)
-    elseif str.val == "false"
-        l.last_token = Tokens.FALSE
-        start_token!(l)
-        return Token(Tokens.FALSE, str.startpos,
-                str.endpos,
-                str.startbyte, str.endbyte,
-                str.val, str.token_error)
+    accept_batch(l, is_identifier_char)
+    str = extract_tokenstring(l)
+    if str == "true"
+        return emit(l, Tokens.TRUE)
+    elseif str == "false"
+       return emit(l, Tokens.FALSE)
     else
-        return str
+        return emit(l, get(Tokens.KEYWORDS, str, Tokens.IDENTIFIER), str)
     end
 end
 
