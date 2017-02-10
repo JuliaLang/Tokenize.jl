@@ -31,6 +31,7 @@
     begin_invisble_keywords,
         BLOCK,
         CALL,
+        CCALL,
         COMPARISON,
         COMPREHENSION,
         CURLY,
