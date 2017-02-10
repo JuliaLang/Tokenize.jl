@@ -313,8 +313,6 @@ function next_token(l::Lexer)
     elseif c == '+'; return lex_plus(l);
     elseif c == '-'; return lex_minus(l);
     elseif c == '`'; return lex_cmd(l);
-    elseif c == 'i'; return lex_i(l);
-    elseif c == 't' || c == 'f'; return lex_bool(l);
     elseif isdigit(c); return lex_digit(l)
     elseif is_identifier_start_char(c); return lex_identifier(l, c)
     elseif (k = get(UNICODE_OPS, c, Tokens.ERROR)) != Tokens.ERROR return emit(l, k)
@@ -1078,6 +1076,5 @@ function lex_identifier(l, c)
         end
     end
 end
-
 
 end # module
