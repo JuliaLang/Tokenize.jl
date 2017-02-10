@@ -24,8 +24,8 @@ end
 ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
 
-type Lexer{T <: AbstractToken}
-    io::IOBuffer
+type Lexer{IO_t <: IO, T <: AbstractToken}
+    io::IO_t
 
     token_start_row::Int
     token_start_col::Int
@@ -40,7 +40,7 @@ type Lexer{T <: AbstractToken}
 end
 
 
-Lexer{T <: AbstractToken}(io, toktype::Type{T} = Token) = Lexer{toktype}(io, 1, 1, Int64(-1), Int64(0), 1, 1, Int64(1), Tokens.ERROR)
+Lexer{IO_t <: IO, T <: AbstractToken}(io::IO_t, toktype::Type{T} = Token) = Lexer{IO_t, toktype}(io, 1, 1, Int64(-1), Int64(0), 1, 1, Int64(1), Tokens.ERROR)
 Lexer{T <: AbstractToken}(str::AbstractString, toktype::Type{T} = Token) = Lexer(IOBuffer(str), toktype)
 
 """
@@ -56,7 +56,7 @@ Base.iteratorsize{T <: Lexer}(::Type{T}) = Base.SizeUnknown()
 Base.iteratoreltype{T <: Lexer}(::Type{T}) = Base.HasEltype()
 
 
-Base.eltype{T}(::Type{Lexer{T}}) = T
+Base.eltype{IO_t, T}(::Type{Lexer{IO_t, T}}) = T
 
 
 function Base.start(l::Lexer)
@@ -229,7 +229,7 @@ end
 Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
 
-function emit(l::Lexer{Token}, kind::Kind,
+function emit{IO_t}(l::Lexer{IO_t, Token}, kind::Kind,
               str::String=extract_tokenstring(l), err::TokenError=Tokens.NO_ERR)
     tok = Token(kind, (l.token_start_row, l.token_start_col),
                 (l.current_row, l.current_col - 1),
@@ -242,7 +242,7 @@ function emit(l::Lexer{Token}, kind::Kind,
 end
 
 
-function emit(l::Lexer{RawToken}, kind::Kind, do_extract = true, err::TokenError=Tokens.NO_ERR)
+function emit{IO_t}(l::Lexer{IO_t, RawToken}, kind::Kind, do_extract = true, err::TokenError=Tokens.NO_ERR)
     do_extract && extract_tokenstring(l, false)
     tok = RawToken(kind, (l.token_start_row, l.token_start_col),
                 (l.current_row, l.current_col - 1),
@@ -254,15 +254,15 @@ function emit(l::Lexer{RawToken}, kind::Kind, do_extract = true, err::TokenError
     return tok
 end
 
-emit(l::Lexer{RawToken}, kind::Kind, str::String, err::TokenError=Tokens.NO_ERR) = emit(l, kind, false, err)
+emit{IO_t}(l::Lexer{IO_t, RawToken}, kind::Kind, str::String, err::TokenError=Tokens.NO_ERR) = emit(l, kind, false, err)
 
 """
     emit_error(l::Lexer, err::TokenError=Tokens.UNKNOWN)
 
 Returns an `ERROR` token with error `err` and starts a new `Token`.
 """
-emit_error(l::Lexer{Token},    err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, extract_tokenstring(l), err)
-emit_error(l::Lexer{RawToken}, err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, true, err)
+emit_error{IO_t}(l::Lexer{IO_t, Token},    err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, extract_tokenstring(l), err)
+emit_error{IO_t}(l::Lexer{IO_t, RawToken}, err::TokenError=Tokens.UNKNOWN) = emit(l, Tokens.ERROR, true, err)
 
 
 """
