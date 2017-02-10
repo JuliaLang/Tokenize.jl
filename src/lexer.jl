@@ -962,7 +962,7 @@ function lex_identifier(l, c)
             else
                 return readrest(l)
             end
-        elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && "c" == 's' 
+        elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && c == 's' 
             return tryread(l, ('a'), ISA)
         else
             if !is_identifier_char(c)
