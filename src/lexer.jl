@@ -301,8 +301,7 @@ function extract_tokenstring(l::Lexer, do_write = true)
         end
         do_write && write(charstore, c)
     end
-    str = String(take!(charstore))
-    return str
+    return do_write ? String(take!(charstore)) : ""
 end
 
 
