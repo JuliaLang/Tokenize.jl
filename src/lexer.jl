@@ -8,7 +8,9 @@ import Compat.String
 
 import ..Tokens
 import ..Tokens: AbstractToken, RawToken, Token, Kind, TokenError, UNICODE_OPS
+
 import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BREAK, CATCH, CONST, CONTINUE, DO, ELSE, ELSEIF, END, EXPORT, FALSE, FINALLY, FOR, FUNCTION, GLOBAL, LET, LOCAL, IF, IMMUTABLE, IMPORT, IMPORTALL, MACRO, MODULE, QUOTE, RETURN, TRUE, TRY, TYPE, TYPEALIAS, USING, WHILE, ISA, IN
+
 
 export tokenize
 
@@ -21,7 +23,6 @@ end
 
 ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
-
 
 type Lexer{T}
     io::IOBuffer
@@ -38,6 +39,7 @@ type Lexer{T}
     last_token::Tokens.Kind
 end
 
+
 Lexer{T <: AbstractToken}(io, toktype::Type{T} = Token) = Lexer{toktype}(io, 1, 1, Int64(-1), Int64(0), 1, 1, Int64(1), Tokens.ERROR)
 Lexer{T <: AbstractToken}(str::AbstractString, toktype::Type{T} = Token) = Lexer(IOBuffer(str), toktype)
 
@@ -52,6 +54,7 @@ tokenize{T <: AbstractToken}(x, toktype::Type{T} = Token) = Lexer(x, toktype)
 # Iterator interface
 Base.iteratorsize{T <: Lexer}(::Type{T}) = Base.SizeUnknown()
 Base.iteratoreltype{T <: Lexer}(::Type{T}) = Base.HasEltype()
+
 
 Base.eltype{T}(::Type{Lexer{T}}) = T
 
@@ -225,6 +228,7 @@ end
 
 Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
+
 function emit(l::Lexer{Token}, kind::Kind,
               str::String=extract_tokenstring(l), err::TokenError=Tokens.NO_ERR)
     tok = Token(kind, (l.token_start_row, l.token_start_col),
@@ -237,6 +241,7 @@ function emit(l::Lexer{Token}, kind::Kind,
     return tok
 end
 
+
 function emit(l::Lexer{RawToken}, kind::Kind, do_extract = true, err::TokenError=Tokens.NO_ERR)
     do_extract && extract_tokenstring(l, false)
     tok = RawToken(kind, (l.token_start_row, l.token_start_col),
@@ -248,6 +253,7 @@ function emit(l::Lexer{RawToken}, kind::Kind, do_extract = true, err::TokenError
     start_token!(l)
     return tok
 end
+
 emit(l::Lexer{RawToken}, kind::Kind, str::String, err::TokenError=Tokens.NO_ERR) = emit(l, kind, false, err)
 
 """
