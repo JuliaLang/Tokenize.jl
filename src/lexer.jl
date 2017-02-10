@@ -738,7 +738,7 @@ function tryread(l, str, k)
         c = readchar(l)
         if c!=s
             if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
+                backup!(l)
                 return emit(l, IDENTIFIER)
             end
             accept_batch(l, is_identifier_char)
@@ -758,6 +758,14 @@ function readrest(l)
 end
 
 
+function _doret(c, l)
+    if !is_identifier_char(c)
+        backup!(l)
+        return emit(l, IDENTIFIER)
+    else
+        return readrest(l)
+    end
+end
 
 function lex_identifier(l, c)
     if c == 'a'
@@ -773,12 +781,7 @@ function lex_identifier(l, c)
         elseif c == 'r'
             return tryread(l, ('e', 'a', 'k'), BREAK)
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'c'
         c = readchar(l)
@@ -793,28 +796,13 @@ function lex_identifier(l, c)
                 elseif c == 't'
                     return tryread(l, ('i', 'n', 'u', 'e'), CONTINUE)
                 else
-                    if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
-                        return emit(l, IDENTIFIER)
-                    else
-                        return readrest(l)
-                    end
+                    _doret(c, l)
                 end
             else
-                if !is_identifier_char(c)
-                    skip(l.io, -Int(!eof(l.io)))
-                    return emit(l, IDENTIFIER)
-                else
-                    return readrest(l)
-                end
+                _doret(c, l)
             end
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'd'
         return tryread(l, ('o'), DO)
@@ -827,45 +815,25 @@ function lex_identifier(l, c)
                 if c == 'e'
                     c = readchar(l)
                     if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
+                        backup!(l)
                         return emit(l, ELSE)
                     elseif c == 'i'
                         return tryread(l, ('f'), ELSEIF)
                     else
-                        if !is_identifier_char(c)
-                            skip(l.io, -Int(!eof(l.io)))
-                            return emit(l, IDENTIFIER)
-                        else
-                            return readrest(l)
-                        end
+                        _doret(c, l)
                     end
                 else
-                    if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
-                        return emit(l, IDENTIFIER)
-                    else
-                        return readrest(l)
-                    end
+                    _doret(c, l)
                 end
             else
-                if !is_identifier_char(c)
-                    skip(l.io, -Int(!eof(l.io)))
-                    return emit(l, IDENTIFIER)
-                else
-                    return readrest(l)
-                end
+                _doret(c, l)
             end
         elseif c == 'n'
             return tryread(l, ('d'), END)
         elseif c == 'x'
             return tryread(l, ('p', 'o', 'r', 't'), EXPORT)
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'f'
         c = readchar(l)
@@ -878,12 +846,7 @@ function lex_identifier(l, c)
         elseif c == 'u'
             return tryread(l, ('n', 'c', 't', 'i', 'o', 'n'), FUNCTION)
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'g'
         return tryread(l, ('l', 'o', 'b', 'a', 'l'), GLOBAL)
@@ -915,44 +878,19 @@ function lex_identifier(l, c)
                             elseif c == 'a'
                                 return tryread(l, ('l','l'), IMPORTALL)
                             else
-                                if !is_identifier_char(c)
-                                    skip(l.io, -Int(!eof(l.io)))
-                                    return emit(l, IDENTIFIER)
-                                else
-                                    return readrest(l)
-                                end
+                               _doret(c, l)
                             end
                         else
-                            if !is_identifier_char(c)
-                                skip(l.io, -Int(!eof(l.io)))
-                                return emit(l, IDENTIFIER)
-                            else
-                                return readrest(l)
-                            end
+                            _doret(c, l)
                         end
                     else
-                        if !is_identifier_char(c)
-                            skip(l.io, -Int(!eof(l.io)))
-                            return emit(l, IDENTIFIER)
-                        else
-                            return readrest(l)
-                        end
+                        _doret(c, l)
                     end
                 else
-                    if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
-                        return emit(l, IDENTIFIER)
-                    else
-                        return readrest(l)
-                    end
+                    _doret(c, l)
                 end
             else
-                if !is_identifier_char(c)
-                    skip(l.io, -Int(!eof(l.io)))
-                    return emit(l, IDENTIFIER)
-                else
-                    return readrest(l)
-                end
+                _doret(c, l)
             end
         elseif c == 'n'
             c = readchar(l)
@@ -962,15 +900,10 @@ function lex_identifier(l, c)
             else
                 return readrest(l)
             end
-        elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && c == 's' 
+        elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && c == 's'
             return tryread(l, ('a'), ISA)
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'l'
         c = readchar(l)
@@ -979,12 +912,7 @@ function lex_identifier(l, c)
         elseif c == 'o'
             return tryread(l, ('c', 'a', 'l'), LOCAL)
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'm'
         c = readchar(l)
@@ -993,12 +921,7 @@ function lex_identifier(l, c)
         elseif c == 'o'
             return tryread(l, ('d', 'u', 'l', 'e'), MODULE)
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'q'
         return tryread(l, ('u', 'o', 't', 'e'), QUOTE)
@@ -1014,7 +937,7 @@ function lex_identifier(l, c)
                 return emit(l, TRY)
             else
                 if !is_identifier_char(c)
-                    skip(l.io, -Int(!eof(l.io)))
+                    backup!(l)
                     return emit(l, IDENTIFIER)
                 else
                     return readrest(l)
@@ -1027,41 +950,21 @@ function lex_identifier(l, c)
                 if c == 'e'
                     c = readchar(l)
                     if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
+                        backup!(l)
                         return emit(l, TYPE)
                     elseif c == 'a'
                         return tryread(l, ('l', 'i', 'a', 's'), TYPEALIAS)
                     else
-                        if !is_identifier_char(c)
-                            skip(l.io, -Int(!eof(l.io)))
-                            return emit(l, IDENTIFIER)
-                        else
-                            return readrest(l)
-                        end
+                        _doret(c, l)
                     end
                 else
-                    if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
-                        return emit(l, IDENTIFIER)
-                    else
-                        return readrest(l)
-                    end
+                    _doret(c, l)
                 end
             else
-                if !is_identifier_char(c)
-                        skip(l.io, -Int(!eof(l.io)))
-                        return emit(l, IDENTIFIER)
-                    else
-                        return readrest(l)
-                    end
+                _doret(c, l)
             end
         else
-            if !is_identifier_char(c)
-                skip(l.io, -Int(!eof(l.io)))
-                return emit(l, IDENTIFIER)
-            else
-                return readrest(l)
-            end
+            _doret(c, l)
         end
     elseif c == 'u'
         return tryread(l, ('s', 'i', 'n', 'g'), USING)
@@ -1069,7 +972,7 @@ function lex_identifier(l, c)
         return tryread(l, ('h', 'i', 'l', 'e'), WHILE)
     else
         if !is_identifier_char(c)
-            skip(l.io, -Int(!eof(l.io)))
+            backup!(l)
             return emit(l, IDENTIFIER)
         else
             return readrest(l)

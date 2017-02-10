@@ -229,3 +229,49 @@ end
     t = collect(tokenize("x in y"))[3]
     @test t.endbyte - t.startbyte + 1 == 2
 end
+
+@testset "keywords" begin
+      for kw in    ["function",
+                    "abstract",
+                    "baremodule",
+                    "begin",
+                    "bitstype",
+                    "break",
+                    "catch",
+                    "const",
+                    "continue",
+                    "do",
+                    "else",
+                    "elseif",
+                    "end",
+                    "export",
+                    #"false",
+                    "finally",
+                    "for",
+                    "function",
+                    "global",
+                    "let",
+                    "local",
+                    "if",
+                    "immutable",
+                    "import",
+                    "importall",
+                    "macro",
+                    "module",
+                    "quote",
+                    "return",
+                    #"true",
+                    "try",
+                    "type",
+                    "typealias",
+                    "using",
+                    "while"]
+
+        @test T.kind(collect(tokenize(kw))[1]) == T.KEYWORD
+    end
+end
+
+
+"FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BREAK, CATCH, CONST, CONTINUE,
+                 DO, ELSE, ELSEIF, END, EXPORT, FALSE, FINALLY, FOR, FUNCTION, GLOBAL, LET, LOCAL, IF, IMMUTABLE,
+                 IMPORT, IMPORTALL, MACRO, MODULE, QUOTE, RETURN, TRUE, TRY, TYPE, TYPEALIAS, USING, WHILE, ISA, IN"
