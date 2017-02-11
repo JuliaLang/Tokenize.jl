@@ -83,6 +83,7 @@ startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
 untokenize(t::Token) = t.val
 
+
 function untokenize(ts)
     if eltype(ts) != Token
         throw(ArgumentError("element type of iterator has to be Token"))
@@ -90,6 +91,26 @@ function untokenize(ts)
     io = IOBuffer()
     for tok in ts
         write(io, untokenize(tok))
+    end
+    return String(take!(io))
+end
+
+untokenize(t::RawToken, str::String) = str[t.startbyte + 1: t.endbyte + 1]
+function untokenize(t::RawToken, io::IO)
+    p = position(io)
+    seek(io, t.startbyte)
+    str = String(read(io, t.endbyte - t.startbyte + 1))
+    seek(io, p)
+    return str
+end
+
+function untokenize(ts, source::Union{String, IO})
+    if eltype(ts) != RawToken
+        throw(ArgumentError("element type of iterator has to be RawToken"))
+    end
+    io = IOBuffer()
+    for tok in ts
+        write(io, untokenize(tok, source))
     end
     return String(take!(io))
 end

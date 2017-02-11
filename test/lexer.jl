@@ -3,38 +3,47 @@ using Tokenize.Lexers
 using Base.Test
 
 const T = Tokenize.Tokens
+import T: Token, RawToken
 
 @testset "tokens" begin
-    for s in ["a", IOBuffer("a")]
-        l = tokenize(s)
-        @test Lexers.readchar(l) == 'a'
-        @test Lexers.prevpos(l) == 0
+    @testset "toktype" for TT in [Token, RawToken]
+        for s in ["a", IOBuffer("a")]
+            l = tokenize(s, TT)
+            @test Lexers.readchar(l) == 'a'
+            @test Lexers.prevpos(l) == 0
 
-        @test l.current_pos == 1
-        l_old = l
-        @test Lexers.prevchar(l) == 'a'
-        @test l == l_old
-        @test Lexers.eof(l)
-        @test Lexers.readchar(l) == Lexers.EOF_CHAR
+            @test l.current_pos == 1
+            l_old = l
+            @test Lexers.prevchar(l) == 'a'
+            @test l == l_old
+            @test Lexers.eof(l)
+            @test Lexers.readchar(l) == Lexers.EOF_CHAR
 
-        Lexers.backup!(l)
-        @test Lexers.prevpos(l) == -1
-        @test l.current_pos == 1
+            Lexers.backup!(l)
+            @test Lexers.prevpos(l) == -1
+            @test l.current_pos == 1
+        end
     end
 end # testset
 
 @testset "tokenize unicode" begin
-    str = "𝘋 =2β"
-    for s in [str, IOBuffer(str)]
-        l = tokenize(s)
-        kinds = [T.IDENTIFIER, T.WHITESPACE, T.OP,
-                T.INTEGER, T.IDENTIFIER, T.ENDMARKER]
-        token_strs = ["𝘋", " ", "=", "2", "β", ""]
-        for (i, n) in enumerate(l)
-            @test T.kind(n) == kinds[i]
-            @test untokenize(n)  == token_strs[i]
-            @test T.startpos(n) == (1, i)
-            @test T.endpos(n) == (1, i - 1 + length(token_strs[i]))
+    @testset "toktype" for TT in [Token, RawToken]
+        str = "𝘋 =2β"
+        for s in [str, IOBuffer(str)]
+            l = tokenize(s, TT)
+            kinds = [T.IDENTIFIER, T.WHITESPACE, T.OP,
+                    T.INTEGER, T.IDENTIFIER, T.ENDMARKER]
+            token_strs = ["𝘋", " ", "=", "2", "β", ""]
+            for (i, n) in enumerate(l)
+                @test T.kind(n) == kinds[i]
+                if TT == Token
+                    @test untokenize(n)  == token_strs[i]
+                else
+                    @test untokenize(n, s)  == token_strs[i]
+                end
+                @test T.startpos(n) == (1, i)
+                @test T.endpos(n) == (1, i - 1 + length(token_strs[i]))
+            end
         end
     end
 end # testset
@@ -123,15 +132,21 @@ end # testset
 
             T.WHITESPACE,T.ERROR,T.ENDMARKER]
 
-    for (i, n) in enumerate(tokenize(str))
-        @test Tokens.kind(n) == kinds[i]
+    @testset "toktype" for TT in [Token, RawToken]
+        for (i, n) in enumerate(tokenize(str, TT))
+            @test Tokens.kind(n) == kinds[i]
+        end
     end
 
     @testset "roundtrippability" begin
-        @test join(untokenize.(collect(tokenize(str)))) == str
-        @test untokenize(collect(tokenize(str))) == str
-        @test untokenize(tokenize(str)) == str
+
+        @test join(untokenize.(collect(tokenize(str, Token)))) == str
+        @test untokenize(collect(tokenize(str, Token))) == str
+        @test untokenize(tokenize(str, Token)) == str
         @test_throws ArgumentError untokenize("blabla")
+
+        @test untokenize(collect(tokenize(str, RawToken)), str) == str
+        @test untokenize(tokenize(str, RawToken), str) == str
     end
 
     @test all((t.endbyte - t.startbyte + 1)==sizeof(t.val) for t in tokenize(str))

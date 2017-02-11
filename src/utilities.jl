@@ -28,6 +28,9 @@ The JuliaParser.jl package is licensed under the MIT "Expat" License:
 
 import Base.UTF8proc
 
+ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
+iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
+
 const EOF_CHAR = convert(Char,typemax(UInt32))
 
 function is_cat_id_start(ch::Char, cat::Integer)
