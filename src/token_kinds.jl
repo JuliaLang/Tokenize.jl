@@ -10,7 +10,7 @@
 
     begin_keywords,
         KEYWORD, # general
-        begin_0arg_kw, 
+        begin_0arg_kw,
             BREAK, CONTINUE,
         end_0arg_kw,
         begin_1arg_kw,
@@ -25,7 +25,7 @@
         end_3arg_kw,
         IF, ELSEIF, ELSE,
         TRY, CATCH, FINALLY,
-        END,  
+        END,
     end_keywords,
 
     begin_invisble_keywords,
@@ -56,7 +56,7 @@
         TRIPLE_STRING, # """ foo \n """
         CHAR, # 'a'
         CMD, # `cmd ...`
-        TRUE, FALSE, 
+        TRUE, FALSE,
     end_literal,
 
     begin_delimiters,
@@ -98,7 +98,7 @@
         begin_conditional,
             CONDITIONAL, # ?
         end_conditional,
-    
+
         # Level 3
         begin_arrow,
             RIGHT_ARROW, # -->
@@ -714,7 +714,7 @@
             HALFWIDTH_UPWARDS_ARROW, # ￪
             HALFWIDTH_DOWNWARDS_ARROW, # ￬
         end_power,
-        
+
         # Level 14
         begin_decl,
             DECLARATION, # ::
@@ -730,7 +730,7 @@
         DDDOT, # ...
         TRANSPOSE, # .'
         ANON_FUNC, # ->
-        
+
 
         begin_unicode_ops,
             NOT_SIGN, # ¬
@@ -740,6 +740,8 @@
         end_unicode_ops,
     end_ops,
 )
+
+include("string_lut.jl")
 
 
 const UNICODE_OPS = Dict{Char, Kind}(
@@ -1287,3 +1289,34 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '￪' => HALFWIDTH_UPWARDS_ARROW,
 '￬' => HALFWIDTH_DOWNWARDS_ARROW,
 '⋅' => UNICODE_DOT)
+
+const INVERTED_UNICODE_OPS = Dict{Kind, Char}()
+let
+    for (k, v) in UNICODE_OPS
+        INVERTED_UNICODE_OPS[v] = k
+    end
+end
+
+function _need_extract(k::Kind)
+    return (k == COMMENT || k == WHITESPACE || k == IDENTIFIER || k == LITERAL
+       || k == INTEGER || k == FLOAT || k == STRING || k == TRIPLE_STRING
+       || k == CHAR || k == CMD || k == OP || k == KEYWORD || k == ERROR || k == ENDMARKER)
+end
+
+
+const STRINGS = String[]
+let
+    insts = instances(Kind)
+    resize!(STRINGS, length(insts))
+    for k in insts
+        if haskey(INVERTED_UNICODE_OPS, k)
+            STRINGS[Int(k)] = string(INVERTED_UNICODE_OPS[k])
+        elseif haskey(STRING_LUT, k)
+            STRINGS[Int(k)] = STRING_LUT[k]
+        else
+            s = string(k)
+            @assert (_need_extract(k) || startswith(s, "begin_") || startswith(s, "end_")
+                || (begin_invisble_keywords < k < end_invisble_keywords))
+        end
+    end
+end

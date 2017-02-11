@@ -4,6 +4,8 @@ using Compat
 import Compat.String
 import Base.eof
 
+import .. USE_STRING_LOOKUP
+
 export Token
 
 include("token_kinds.jl")
@@ -95,13 +97,24 @@ function untokenize(ts)
     return String(take!(io))
 end
 
-untokenize(t::RawToken, str::String) = str[t.startbyte + 1: t.endbyte + 1]
+function untokenize(t::RawToken, str::String)
+    if _need_extract(exactkind(t)) || !USE_STRING_LOOKUP
+      str[t.startbyte + 1: t.endbyte + 1]
+    else
+      return STRINGS[Int(exactkind(t))]
+    end
+end
+
 function untokenize(t::RawToken, io::IO)
-    p = position(io)
-    seek(io, t.startbyte)
-    str = String(read(io, t.endbyte - t.startbyte + 1))
-    seek(io, p)
-    return str
+    if _need_extract(exactkind(t)) || !USE_STRING_LOOKUP
+        p = position(io)
+        seek(io, t.startbyte)
+        str = String(read(io, t.endbyte - t.startbyte + 1))
+        seek(io, p)
+        return str
+    else
+        return STRINGS[Int(exactkind(t))]
+    end
 end
 
 function untokenize(ts, source::Union{String, IO})

@@ -2,6 +2,8 @@
 
 module Tokenize
 
+const USE_STRING_LOOKUP = true
+
 include("token.jl")
 include("lexer.jl")
 
