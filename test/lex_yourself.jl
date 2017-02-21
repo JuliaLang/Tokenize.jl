@@ -36,7 +36,8 @@ function testall(srcdir::AbstractString)
             seek(buf, 0)
             str = String(take!(buf))
 
-            collect(Tokenize.tokenize(str))
+            @test Tokenize.untokenize(Tokenize.tokenize(str)) == str
+            @test Tokenize.untokenize(Tokenize.tokenize(str, Tokenize.Tokens.RawToken), str) == str
 
             for token in tokens
                 if Tokenize.Tokens.kind(token) == Tokenize.Tokens.ERROR
