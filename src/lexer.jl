@@ -780,8 +780,8 @@ end
 
 function gen_ifbranch(d::Dict, i = 1)
 str = ""
-ks1 = sort(filter(k-> k isa String, collect(keys(d))))
-ks2 = sort(filter(k-> k isa Char, collect(keys(d))))
+ks1 = sort(filter(k-> isa(k, String), collect(keys(d))))
+ks2 = sort(filter(k-> isa(k, Char), collect(keys(d))))
 
 for k in ks1
     uck = uppercase(k)
@@ -801,7 +801,7 @@ function genlexid()
         str = string(Tokens.Kind[i][1])
         if isupper(first(str))
             push!(kws, lowercase(str))
-        end
+        end 
     end
     append!(kws, ["in", "isa", "true", "false"])
     sort!(kws)
