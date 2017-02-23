@@ -283,3 +283,8 @@ end
     @test collect(tokenize("aa \"\"\" \"dsad\" \"\""))[3].kind == T.ERROR
 
 end
+
+
+@testset "xor_eq" begin
+    @test collect(tokenize("1 ⊻= 2"))[3].kind==T.XOR_EQ
+end
