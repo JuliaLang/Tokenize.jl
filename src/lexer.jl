@@ -744,213 +744,72 @@ function _doret(c, l)
     end
 end
 
-function lex_identifier(l, c)
-    if c == 'a'
-        return tryread(l, ('b', 's', 't', 'r', 'a', 'c', 't'), ABSTRACT)
-    elseif c == 'b'
-        c = readchar(l)
-        if c == 'a'
-            return tryread(l, ('r', 'e', 'm', 'o', 'd', 'u', 'l', 'e'), BAREMODULE)
-        elseif c == 'e'
-            return tryread(l, ('g', 'i', 'n'), BEGIN)
-        elseif c == 'i'
-            return tryread(l, ('t', 's', 't', 'y', 'p', 'e'), BITSTYPE)
-        elseif c == 'r'
-            return tryread(l, ('e', 'a', 'k'), BREAK)
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'c'
-        c = readchar(l)
-        if c == 'a'
-            return tryread(l, ('t', 'c', 'h'), CATCH)
-        elseif c == 'o'
-            c = readchar(l)
-            if c == 'n'
-                c = readchar(l)
-                if c == 's'
-                    return tryread(l, ('t',), CONST)
-                elseif c == 't'
-                    return tryread(l, ('i', 'n', 'u', 'e'), CONTINUE)
-                else
-                    return _doret(c, l)
-                end
-            else
-                return _doret(c, l)
-            end
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'd'
-        return tryread(l, ('o'), DO)
-    elseif c == 'e'
-        c = readchar(l)
-        if c == 'l'
-            c = readchar(l)
-            if c == 's'
-                c = readchar(l)
-                if c == 'e'
-                    c = readchar(l)
-                    if !is_identifier_char(c)
-                        backup!(l)
-                        return emit(l, ELSE)
-                    elseif c == 'i'
-                        return tryread(l, ('f'), ELSEIF)
-                    else
-                        return _doret(c, l)
-                    end
-                else
-                    return _doret(c, l)
-                end
-            else
-                return _doret(c, l)
-            end
-        elseif c == 'n'
-            return tryread(l, ('d'), END)
-        elseif c == 'x'
-            return tryread(l, ('p', 'o', 'r', 't'), EXPORT)
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'f'
-        c = readchar(l)
-        if c == 'a'
-            return tryread(l, ('l', 's', 'e'), FALSE)
-        elseif c == 'i'
-            return tryread(l, ('n', 'a', 'l', 'l', 'y'), FINALLY)
-        elseif c == 'o'
-            return tryread(l, ('r'), FOR)
-        elseif c == 'u'
-            return tryread(l, ('n', 'c', 't', 'i', 'o', 'n'), FUNCTION)
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'g'
-        return tryread(l, ('l', 'o', 'b', 'a', 'l'), GLOBAL)
-    elseif c == 'i'
-        c = readchar(l)
-        if c == 'f'
-            c = readchar(l)
-            if !is_identifier_char(c)
-                backup!(l)
-                return emit(l, IF)
-            else
-                return readrest(l)
-            end
-        elseif c == 'm'
-            c = readchar(l)
-            if c == 'm'
-                return tryread(l, ('u', 't', 'a', 'b', 'l', 'e'), IMMUTABLE)
-            elseif c == 'p'
-                c = readchar(l)
-                if c == 'o'
-                    c = readchar(l)
-                    if c == 'r'
-                        c = readchar(l)
-                        if c == 't'
-                            c = readchar(l)
-                            if !is_identifier_char(c)
-                                backup!(l)
-                                return emit(l, IMPORT)
-                            elseif c == 'a'
-                                return tryread(l, ('l','l'), IMPORTALL)
-                            else
-                               return _doret(c, l)
-                            end
-                        else
-                            return _doret(c, l)
-                        end
-                    else
-                        return _doret(c, l)
-                    end
-                else
-                    return _doret(c, l)
-                end
-            else
-                return _doret(c, l)
-            end
-        elseif c == 'n'
-            c = readchar(l)
-            if !is_identifier_char(c)
-                backup!(l)
-                return emit(l, IN)
-            else
-                return readrest(l)
-            end
-        elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && c == 's'
-            return tryread(l, ('a'), ISA)
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'l'
-        c = readchar(l)
-        if c == 'e'
-            return tryread(l, ('t'), LET)
-        elseif c == 'o'
-            return tryread(l, ('c', 'a', 'l'), LOCAL)
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'm'
-        c = readchar(l)
-        if c == 'a'
-            return tryread(l, ('c', 'r', 'o'), MACRO)
-        elseif c == 'o'
-            return tryread(l, ('d', 'u', 'l', 'e'), MODULE)
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'q'
-        return tryread(l, ('u', 'o', 't', 'e'), QUOTE)
-    elseif c == 'r'
-        return tryread(l, ('e', 't', 'u', 'r', 'n'), RETURN)
-    elseif c == 't'
-        c = readchar(l)
-        if c == 'r'
-            c = readchar(l)
-            if c == 'u'
-                return tryread(l, ('e'), TRUE)
-            elseif c == 'y'
-                c = readchar(l)
-                if !is_identifier_char(c)
-                    backup!(l)
-                    return emit(l, TRY)
-                else
-                    return _doret(c, l)
-                end
-            else
-                return _doret(c, l)
-            end
-        elseif c == 'y'
-            c = readchar(l)
-            if c == 'p'
-                c = readchar(l)
-                if c == 'e'
-                    c = readchar(l)
-                    if !is_identifier_char(c)
-                        backup!(l)
-                        return emit(l, TYPE)
-                    elseif c == 'a'
-                        return tryread(l, ('l', 'i', 'a', 's'), TYPEALIAS)
-                    else
-                        return _doret(c, l)
-                    end
-                else
-                    return _doret(c, l)
-                end
-            else
-                return _doret(c, l)
-            end
-        else
-            return _doret(c, l)
-        end
-    elseif c == 'u'
-        return tryread(l, ('s', 'i', 'n', 'g'), USING)
-    elseif c == 'w'
-        return tryread(l, ('h', 'i', 'l', 'e'), WHILE)
+function sort_chars(list, i=1)
+d = Dict()
+for x in list
+    if length(x)<i
+        d[x] = x
+    elseif !(x[i] in keys(d))
+        d[x[i]] = [x]
     else
-        return _doret(c, l)
+        push!(d[x[i]], x)
     end
 end
+for k in keys(d)
+    if length(d[k]) > 1
+        d[k] = sort_chars(d[k],i+1)
+    end
+end
+d
+end
+
+function gen_ifbranch(d, i=1) 
+    if length(first(d))>=i
+        return "$("    "^(i-1))return tryread(l, ($(join([string(''',first(d)[j],''') for j = i:length(first(d))],", "))), $(uppercase(first(d))))\n"
+    else
+    # return "$("    "^(i-1))leaf: $(d)\n"
+    return """$("    "^(i-1))c = readchar(l)
+$("    "^(i-1))if !is_identifier_char(c)
+$("    "^(i))backup!(l)
+$("    "^(i))return emit(l, $(uppercase(first(d))))
+$("    "^(i-1))else
+$("    "^(i))return readrest(l)
+$("    "^(i-1))end\n"""
+    end
+end
+
+function gen_ifbranch(d::Dict, i = 1)
+str = ""
+ks1 = sort(filter(k-> k isa String, collect(keys(d))))
+ks2 = sort(filter(k-> k isa Char, collect(keys(d))))
+
+for k in ks1
+    uck = uppercase(k)
+    str = string(str, "$("    "^(i-1))elseif !is_identifier_char(c)\n$("    "^i)backup!(l)\n$("    "^i)return emit(l, $uck)\n")
+end
+for k in ks2
+    str = string(str, "$("    "^(i-1))elseif c == '$(k)'\n",gen_ifbranch(d[k],i+1))
+end
+str = string("$("    "^(i-1))c = readchar(l)\n$("    "^(i-1))", 
+    str[4*i+1:end], 
+    "$("    "^(i-1))else\n$("    "^(i))return _doret(c, l)\n$("    "^(i-1))end\n")
+end
+
+function genlexid()
+    kws = String[]
+    for i = Int(Tokens.begin_keywords)+2:Int(Tokens.end_keywords)-1
+        str = string(Tokens.Kind[i][1])
+        if isupper(first(str))
+            push!(kws, lowercase(str))
+        end
+    end
+    append!(kws, ["in", "isa", "true", "false"])
+    sort!(kws)
+    d = sort_chars(kws)
+    str = gen_ifbranch(d)
+    str = string("function lex_identifier(l, c)\n", str[17:end],"end")
+    lex_identifier = eval(current_module(), parse(str))
+    end
+lex_identifier = genlexid()
 
 end # module
