@@ -44,6 +44,8 @@
         TOPLEVEL,
         TUPLE,
         TYPED_COMPREHENSION,
+        TYPED_HCAT,
+        TYPED_VCAT,
         VCAT,
         VECT,
     end_invisble_keywords,
