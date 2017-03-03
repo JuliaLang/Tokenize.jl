@@ -36,6 +36,7 @@
         COMPREHENSION,
         CURLY,
         GENERATOR,
+        HCAT,
         KW,
         LINE,
         MACROCALL,
