@@ -637,20 +637,20 @@ end
 
 # Parse a token starting with a quote.
 # A '"' has been consumed
-function lex_quote(l::Lexer)
+function lex_quote(l::Lexer, doemit=true)
     if accept(l, '"') # ""
         if accept(l, '"') # """
             if read_string(l, Tokens.TRIPLE_STRING)
-                emit(l, Tokens.TRIPLE_STRING)
+                return doemit ? emit(l, Tokens.TRIPLE_STRING) : nothing
             else
-                emit_error(l, Tokens.EOF_STRING)
+                return emit_error(l, Tokens.EOF_STRING)
             end
         else # empty string
-            return emit(l, Tokens.STRING)
+            return doemit ?  emit(l, Tokens.STRING) : nothing
         end
     else # "?, ? != '"'
         if read_string(l, Tokens.STRING)
-            emit(l, Tokens.STRING)
+            return doemit ?  emit(l, Tokens.STRING) : nothing
         else
             return emit_error(l, Tokens.EOF_STRING)
         end
@@ -674,6 +674,22 @@ function read_string(l::Lexer, kind::Tokens.Kind)
             end
         elseif eof(c)
             return false
+        end
+        if c == '$'
+            c = readchar(l)
+            if c == '('
+                o = 1
+                while o > 0
+                    c = readchar(l)
+                    if c == '('
+                        o += 1
+                    elseif c == ')'
+                        o -= 1
+                    elseif c == '"'
+                        lex_quote(l, false)
+                    end
+                end
+            end
         end
     end
 end
