@@ -302,4 +302,6 @@ end
     ts = collect(tokenize(""""str: \$(g("str: \$(h("str"))"))" """))
     @test length(ts)==3
     @test ts[1].kind == Tokens.STRING
+    ts = collect(tokenize("""\"\$\""""))
+    @test ts[1].kind == Tokens.STRING 
 end

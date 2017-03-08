@@ -677,7 +677,15 @@ function read_string(l::Lexer, kind::Tokens.Kind)
         end
         if c == '$'
             c = readchar(l)
-            if c == '('
+            if c == '"'
+                if kind == Tokens.STRING
+                    return true
+                else
+                    if accept(l, "\"") && accept(l, "\"")
+                        return true
+                    end
+                end
+            elseif c == '('
                 o = 1
                 while o > 0
                     c = readchar(l)
