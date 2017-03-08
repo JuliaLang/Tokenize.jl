@@ -7,7 +7,7 @@ using Compat
 import Compat.String
 
 import ..Tokens
-import ..Tokens: Token, Kind, TokenError, UNICODE_OPS
+import ..Tokens: Token, Kind, TokenError, UNICODE_OPS, EMPTY_TOKEN
 
 import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BREAK, CATCH, CONST, CONTINUE,
                  DO, ELSE, ELSEIF, END, EXPORT, FALSE, FINALLY, FOR, FUNCTION, GLOBAL, LET, LOCAL, IF, IMMUTABLE,
@@ -641,16 +641,16 @@ function lex_quote(l::Lexer, doemit=true)
     if accept(l, '"') # ""
         if accept(l, '"') # """
             if read_string(l, Tokens.TRIPLE_STRING)
-                return doemit ? emit(l, Tokens.TRIPLE_STRING) : nothing
+                return doemit ? emit(l, Tokens.TRIPLE_STRING) : EMPTY_TOKEN
             else
                 return emit_error(l, Tokens.EOF_STRING)
             end
         else # empty string
-            return doemit ?  emit(l, Tokens.STRING) : nothing
+            return doemit ?  emit(l, Tokens.STRING) : EMPTY_TOKEN
         end
     else # "?, ? != '"'
         if read_string(l, Tokens.STRING)
-            return doemit ?  emit(l, Tokens.STRING) : nothing
+            return doemit ?  emit(l, Tokens.STRING) : EMPTY_TOKEN
         else
             return emit_error(l, Tokens.EOF_STRING)
         end
