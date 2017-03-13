@@ -765,6 +765,8 @@ function readrest(l, c)
         if c == '!' && peekchar(l) == '='
             backup!(l)
             break
+        elseif !is_identifier_char(peekchar(l))
+            break
         end
         c = readchar(l)
     end
@@ -773,7 +775,7 @@ function readrest(l, c)
 end
 
 
-function _doret(c, l)
+function _doret(l, c)
     if !is_identifier_char(c)
         backup!(l)
         return emit(l, IDENTIFIER)
@@ -796,7 +798,7 @@ function lex_identifier(l, c)
         elseif c == 'r'
             return tryread(l, ('e', 'a', 'k'), BREAK)
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'c'
         c = readchar(l)
@@ -811,13 +813,13 @@ function lex_identifier(l, c)
                 elseif c == 't'
                     return tryread(l, ('i', 'n', 'u', 'e'), CONTINUE)
                 else
-                    return _doret(c, l)
+                    return _doret(l, c)
                 end
             else
-                return _doret(c, l)
+                return _doret(l, c)
             end
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'd'
         return tryread(l, ('o'), DO)
@@ -835,20 +837,20 @@ function lex_identifier(l, c)
                     elseif c == 'i'
                         return tryread(l, ('f'), ELSEIF)
                     else
-                        return _doret(c, l)
+                        return _doret(l, c)
                     end
                 else
-                    return _doret(c, l)
+                    return _doret(l, c)
                 end
             else
-                return _doret(c, l)
+                return _doret(l, c)
             end
         elseif c == 'n'
             return tryread(l, ('d'), END)
         elseif c == 'x'
             return tryread(l, ('p', 'o', 'r', 't'), EXPORT)
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'f'
         c = readchar(l)
@@ -861,7 +863,7 @@ function lex_identifier(l, c)
         elseif c == 'u'
             return tryread(l, ('n', 'c', 't', 'i', 'o', 'n'), FUNCTION)
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'g'
         return tryread(l, ('l', 'o', 'b', 'a', 'l'), GLOBAL)
@@ -893,19 +895,19 @@ function lex_identifier(l, c)
                             elseif c == 'a'
                                 return tryread(l, ('l','l'), IMPORTALL)
                             else
-                               return _doret(c, l)
+                               return _doret(l, c)
                             end
                         else
-                            return _doret(c, l)
+                            return _doret(l, c)
                         end
                     else
-                        return _doret(c, l)
+                        return _doret(l, c)
                     end
                 else
-                    return _doret(c, l)
+                    return _doret(l, c)
                 end
             else
-                return _doret(c, l)
+                return _doret(l, c)
             end
         elseif c == 'n'
             c = readchar(l)
@@ -918,7 +920,7 @@ function lex_identifier(l, c)
         elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && c == 's'
             return tryread(l, ('a'), ISA)
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'l'
         c = readchar(l)
@@ -927,7 +929,7 @@ function lex_identifier(l, c)
         elseif c == 'o'
             return tryread(l, ('c', 'a', 'l'), LOCAL)
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'm'
         c = readchar(l)
@@ -936,7 +938,7 @@ function lex_identifier(l, c)
         elseif c == 'o'
             return tryread(l, ('d', 'u', 'l', 'e'), MODULE)
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'q'
         return tryread(l, ('u', 'o', 't', 'e'), QUOTE)
@@ -954,10 +956,10 @@ function lex_identifier(l, c)
                     backup!(l)
                     return emit(l, TRY)
                 else
-                    return _doret(c, l)
+                    return _doret(l, c)
                 end
             else
-                return _doret(c, l)
+                return _doret(l, c)
             end
         elseif c == 'y'
             c = readchar(l)
@@ -971,23 +973,23 @@ function lex_identifier(l, c)
                     elseif c == 'a'
                         return tryread(l, ('l', 'i', 'a', 's'), TYPEALIAS)
                     else
-                        return _doret(c, l)
+                        return _doret(l, c)
                     end
                 else
-                    return _doret(c, l)
+                    return _doret(l, c)
                 end
             else
-                return _doret(c, l)
+                return _doret(l, c)
             end
         else
-            return _doret(c, l)
+            return _doret(l, c)
         end
     elseif c == 'u'
         return tryread(l, ('s', 'i', 'n', 'g'), USING)
     elseif c == 'w'
         return tryread(l, ('h', 'i', 'l', 'e'), WHILE)
     else
-        return _doret(c, l)
+        return _doret(l, c)
     end
 end
 
