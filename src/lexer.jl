@@ -628,13 +628,6 @@ function lex_amper(l::Lexer)
     end
 end
 
-function lex_identifier(l::Lexer)
-    accept_batch(l, is_identifier_char)
-    str = extract_tokenstring(l)
-    kind = get(Tokens.KEYWORDS, str, Tokens.IDENTIFIER)
-    return emit(l, kind, str)
-end
-
 # Parse a token starting with a quote.
 # A '"' has been consumed
 function lex_quote(l::Lexer, doemit=true)
@@ -758,19 +751,24 @@ function tryread(l, str, k)
                 backup!(l)
                 return emit(l, IDENTIFIER)
             end
-            accept_batch(l, is_identifier_char)
-            return emit(l, IDENTIFIER)
+            return readrest(l, c)
         end
     end
     if is_identifier_char(peekchar(l))
-        accept_batch(l, is_identifier_char)
-        return emit(l, IDENTIFIER)
+        return readrest(l, c)
     end
     return emit(l, k)
 end
 
-function readrest(l)
-    accept_batch(l, is_identifier_char)
+function readrest(l, c)
+    while is_identifier_char(c)
+        if c == '!' && peekchar(l) == '='
+            backup!(l)
+            break
+        end
+        c = readchar(l)
+    end
+
     return emit(l, IDENTIFIER)
 end
 
@@ -780,7 +778,7 @@ function _doret(c, l)
         backup!(l)
         return emit(l, IDENTIFIER)
     else
-        return readrest(l)
+        return readrest(l, c)
     end
 end
 
@@ -875,7 +873,7 @@ function lex_identifier(l, c)
                 backup!(l)
                 return emit(l, IF)
             else
-                return readrest(l)
+                return readrest(l, c)
             end
         elseif c == 'm'
             c = readchar(l)
@@ -915,7 +913,7 @@ function lex_identifier(l, c)
                 backup!(l)
                 return emit(l, IN)
             else
-                return readrest(l)
+                return readrest(l, c)
             end
         elseif (@static VERSION >= v"0.6.0-dev.1471" ? true : false) && c == 's'
             return tryread(l, ('a'), ISA)

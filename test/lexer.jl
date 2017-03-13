@@ -312,3 +312,7 @@ end
     Base.Test.@inferred Tokenize.Lexers.next_token(l)
 end
 
+@testset "modifying function names (!) followed by operator" begin
+    ts = collect(tokenize("a!="))
+    @test ts[2].king == Tokens.NOT_EQ
+end
