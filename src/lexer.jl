@@ -16,9 +16,9 @@ import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BR
 
 export tokenize
 
-ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
-isbinary(c::Char) = c == '0' || c == '1'
-isoctal(c::Char) =  '0' ≤ c ≤ '7'
+ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F') || c == '_'
+isbinary(c::Char) = c == '0' || c == '1' || c == '_'
+isoctal(c::Char) =  '0' ≤ c ≤ '7' || c == '_'
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
 
 type Lexer{IO_t <: IO}
