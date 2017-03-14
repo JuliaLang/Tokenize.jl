@@ -19,6 +19,7 @@ export tokenize
 ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F') || c == '_'
 isbinary(c::Char) = c == '0' || c == '1' || c == '_'
 isoctal(c::Char) =  '0' ≤ c ≤ '7' || c == '_'
+_isinteger(c::Char) =  '0' ≤ c ≤ '9'
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
 
 type Lexer{IO_t <: IO}
@@ -567,7 +568,7 @@ function lex_digit(l::Lexer)
         elseif position(l) > longest # 323213.3232 candidate
             longest, kind = position(l), Tokens.FLOAT
         end
-        if accept(l, "eE") # 1313.[0-9]*e
+        if accept(l, "eEf") # 1313.[0-9]*e
             accept(l, "+-")
             if accept_batch(l, isdigit) && position(l) > longest
                 longest, kind = position(l), Tokens.FLOAT
@@ -595,6 +596,11 @@ function lex_digit(l::Lexer)
             accept(l, "o")
             if accept_batch(l, isoctal) && position(l) > longest
                 longest, kind = position(l), Tokens.INTEGER
+            end
+        elseif accept(l, "eEf")
+            accept(l, "+-")
+            if accept_batch(l, _isinteger) && position(l) > longest
+                longest, kind = position(l), Tokens.FLOAT
             end
         end
     end
