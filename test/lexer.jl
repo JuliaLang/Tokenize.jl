@@ -357,16 +357,17 @@ end
 end
 
 @testset "floating points" begin
-    @test collect(tokenize("0e0"))[1].kind == Tokens.FLOAT
     @test collect(tokenize("1.0e0"))[1].kind == Tokens.FLOAT
-    @test collect(tokenize("0e+0"))[1].kind == Tokens.FLOAT
     @test collect(tokenize("1.0e-0"))[1].kind == Tokens.FLOAT
-    @test collect(tokenize("0E0"))[1].kind == Tokens.FLOAT
     @test collect(tokenize("1.0E0"))[1].kind == Tokens.FLOAT
-    @test collect(tokenize("0E+0"))[1].kind == Tokens.FLOAT
     @test collect(tokenize("1.0E-0"))[1].kind == Tokens.FLOAT
-    @test collect(tokenize("0f0"))[1].kind == Tokens.FLOAT
     @test collect(tokenize("1.0f0"))[1].kind == Tokens.FLOAT
-    @test collect(tokenize("0f+0"))[1].kind == Tokens.FLOAT
     @test collect(tokenize("1.0f-0"))[1].kind == Tokens.FLOAT
+
+    @test collect(tokenize("0e0"))[1].kind == Tokens.FLOAT
+    @test collect(tokenize("0e+0"))[1].kind == Tokens.FLOAT
+    @test collect(tokenize("0E0"))[1].kind == Tokens.FLOAT
+    @test collect(tokenize("201E+0"))[1].kind == Tokens.FLOAT
+    @test collect(tokenize("2f+0"))[1].kind == Tokens.FLOAT
+    @test collect(tokenize("2048f0"))[1].kind == Tokens.FLOAT
 end
