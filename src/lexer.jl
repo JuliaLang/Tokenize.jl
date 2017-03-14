@@ -587,17 +587,14 @@ function lex_digit(l::Lexer)
     # 0x[0-9A-Fa-f]+
     if accept(l, '0')
         if accept(l, 'x')
-            accept(l, "o")
             if accept_batch(l, ishex) && position(l) > longest
                 longest, kind = position(l), Tokens.INTEGER
             end
         elseif accept(l, 'b')
-            accept(l, "o")
             if accept_batch(l, isbinary) && position(l) > longest
                 longest, kind = position(l), Tokens.INTEGER
             end
         elseif accept(l, 'o')
-            accept(l, "o")
             if accept_batch(l, isoctal) && position(l) > longest
                 longest, kind = position(l), Tokens.INTEGER
             end
