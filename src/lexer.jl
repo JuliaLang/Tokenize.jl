@@ -954,13 +954,19 @@ function lex_identifier(l, c)
             return tryread(l, ('c', 'r', 'o'), MACRO, c)
         elseif c == 'o'
             return tryread(l, ('d', 'u', 'l', 'e'), MODULE, c)
+        elseif c == 'u'
+            return tryread(l, ('t', 'a', 'b', 'l', 'e'), TYPE, c)
         else
             return _doret(l, c)
         end
+    elseif c == 'p'
+        return tryread(l, ('r', 'i', 'm', 'i', 't', 'i', 'v', 'e'), BITSTYPE, c)
     elseif c == 'q'
         return tryread(l, ('u', 'o', 't', 'e'), QUOTE, c)
     elseif c == 'r'
         return tryread(l, ('e', 't', 'u', 'r', 'n'), RETURN, c)
+    elseif c == 's'
+        return tryread(l, ('t', 'r', 'u', 'c', 't'), IMMUTABLE, c)
     elseif c == 't'
         c = readchar(l)
         if c == 'r'
