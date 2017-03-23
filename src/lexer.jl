@@ -17,7 +17,8 @@ import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BR
 
 export tokenize
 
-ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F') || c == '_'
+isdigit(c::Char) = Base.isdigit(c) || c == '_'
+ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 isbinary(c::Char) = c == '0' || c == '1' || c == '_'
 isoctal(c::Char) =  '0' ≤ c ≤ '7' || c == '_'
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
@@ -521,17 +522,6 @@ function lex_digit(l::Lexer)
     longest, kind = position(l), Tokens.ERROR
 
     accept_batch(l, isdigit)
-
-    # Accept "_" in digits
-    while true
-        if !accept(l, '_')
-            break
-        end
-        if !accept_batch(l, isdigit)
-            backup!(l)
-            return emit(l, Tokens.INTEGER)
-        end
-    end
 
     if accept(l, '.')
         if peekchar(l) == '.' # 43.. -> [43, ..]

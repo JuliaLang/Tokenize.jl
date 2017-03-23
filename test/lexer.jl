@@ -356,7 +356,10 @@ end
     @test tok("0o0167").kind == T.INTEGER
 end
 
-@testset "lex bin/hex/oct w underscores" begin
+@testset "lex float/bin/hex/oct w underscores" begin
+    @test tok("1_1.11").kind           == T.FLOAT
+    @test tok("11.1_1").kind           == T.FLOAT
+    @test tok("1_1.1_1").kind           == T.FLOAT
     @test tok("0x0167_032").kind           == T.INTEGER
     @test tok("0b0101001_0100_0101").kind  == T.INTEGER
     @test tok("0o01054001_0100_0101").kind == T.INTEGER
