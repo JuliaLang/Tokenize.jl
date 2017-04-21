@@ -631,8 +631,7 @@ function lex_prime(l)
         return emit(l, Tokens.PRIME)
     else
         if accept(l, '\'')
-            if peekchar(l) == '\''
-                readchar(l)
+            if accept(l, '\'')
                 return emit(l, Tokens.CHAR)
             else
                 return emit_error(l, Tokens.EOF_CHAR)
