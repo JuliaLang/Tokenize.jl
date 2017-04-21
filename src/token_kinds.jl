@@ -44,7 +44,6 @@
         TYPE,
         TYPEALIAS,
         USING,
-        WHERE,
         WHILE,
     end_keywords,
 
@@ -753,6 +752,11 @@
         end_decl,
 
         # Level 15
+        begin_where,
+            WHERE,
+        end_where,
+
+        # Level 16
         begin_dot,
             DOT,# .
         end_dot,
