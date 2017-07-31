@@ -705,8 +705,8 @@
             TRANSVERSAL_INTERSECTION, # ⫛
             MULTISET_MULTIPLICATION, # ⊍
             WHITE_RIGHT_POINTING_TRIANGLE, # ▷
-            JOIN, # ⨝ 
-            LEFT_OUTER_JOIN, # ⟕ 
+            JOIN, # ⨝
+            LEFT_OUTER_JOIN, # ⟕
             RIGHT_OUTER_JOIN, # ⟖
             FULL_OUTER_JOIN, # ⟗
         end_times,
@@ -1294,7 +1294,7 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '⩠' => LOGICAL_AND_WITH_DOUBLE_UNDERBAR,
 '⫛' => TRANSVERSAL_INTERSECTION,
 '⊍' => MULTISET_MULTIPLICATION,
-'▷' =>WHITE_RIGHT_POINTING_TRIANGLE,
+'▷' => WHITE_RIGHT_POINTING_TRIANGLE,
 '⨝' => JOIN,
 '⟕' => LEFT_OUTER_JOIN,
 '⟖' => RIGHT_OUTER_JOIN,
