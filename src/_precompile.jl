@@ -1,4 +1,4 @@
-isdefined(Base, :GenericIOBuffer) ? (import Base.GenericIOBuffer) : (@compat GenericIOBuffer{T} = Base.AbstractIOBuffer{T})
+isdefined(Base, :GenericIOBuffer) ? (import Base.GenericIOBuffer) : (GenericIOBuffer{T} = Base.AbstractIOBuffer{T})
 
 function _precompile_()
     ccall(:jl_generating_output, Cint, ()) == 1 || return nothing

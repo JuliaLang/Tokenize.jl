@@ -2,8 +2,6 @@ __precompile__()
 
 module Tokenize
 
-using Compat
-
 include("token.jl")
 include("lexer.jl")
 

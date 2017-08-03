@@ -1,10 +1,7 @@
 module Lexers
 
 include("utilities.jl")
-global const charstore = IOBuffer()
-
-using Compat
-import Compat.String
+global const charstore = IOBuffer() # TODO thread safety?
 
 import ..Tokens
 import ..Tokens: Token, Kind, TokenError, UNICODE_OPS, EMPTY_TOKEN, isliteral
