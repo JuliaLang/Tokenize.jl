@@ -36,8 +36,8 @@ mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     doread::Bool
 end
 
-Lexer(io::IO_t, raw) where {IO_t} = Lexer{IO_t,raw ? RawToken : Token}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
-Lexer(str::AbstractString, raw) = Lexer(IOBuffer(str), raw)
+Lexer(io::IO_t, T) where {IO_t} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
+Lexer(str::AbstractString, T) = Lexer(IOBuffer(str), T)
 
 """
     tokenize(x, raw::Bool = false)
@@ -46,7 +46,9 @@ Returns an `Iterable` containing the tokenized input. Can be reverted by e.g.
 `join(untokenize.(tokenize(x)))`. Setting `raw` to true returns `RawTokens`, 
 which only hold token kind and position information.
 """
-tokenize(x, raw::Bool = false) = Lexer(x, raw)
+tokenize(x, ::Type{Token}) = Lexer(x, Token)
+tokenize(x, ::Type{RawToken}) = Lexer(x, RawToken)
+tokenize(x) = Lexer(x, Token)
 
 # Iterator interface
 Base.iteratorsize(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.SizeUnknown()
