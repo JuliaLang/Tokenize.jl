@@ -531,21 +531,6 @@ function lex_xor(l::Lexer)
     return emit(l, Tokens.XOR)
 end
 
-function accept_number(l::Lexer, f::F) where F
-    !f(peekchar(l)) && return false
-    while true
-        if !accept(l, f)
-            if accept(l, '_')
-                if !f(peekchar(l))
-                    return true
-                end
-            else
-                return true
-            end
-        end
-    end
-end
-
 function accept_number{F}(l::Lexer, f::F)
     while true
         pc, ppc = dpeekchar(l)
