@@ -69,7 +69,36 @@ end
 exactkind(t::Token) = t.kind
 startpos(t::Token) = t.startpos
 endpos(t::Token) = t.endpos
-untokenize(t::Token) = t.val
+function untokenize(t::Token)
+    if t.kind == IDENTIFIER || isliteral(t.kind)
+        return t.val
+    elseif iskeyword(t.kind)
+        return lowercase(string(t.kind))
+    elseif isoperator(t.kind)
+        return string(UNICODE_OPS_REVERSE[t.kind])
+    elseif t.kind == LPAREN
+        return "("
+    elseif t.kind == LSQUARE
+        return "["
+    elseif t.kind == LBRACE
+        return "{"
+    elseif t.kind == RPAREN
+        return ")"
+    elseif t.kind == RSQUARE
+        return "]"
+    elseif t.kind == RBRACE
+        return "}"
+    elseif t.kind == AT_SIGN
+        return "@"
+    elseif t.kind == COMMA
+        return ","
+    elseif t.kind == SEMICOLON
+        return ";"
+    else
+        return ""
+    end
+end
+
 function untokenize(ts)
     if eltype(ts) != Token
         throw(ArgumentError("element type of iterator has to be Token"))
