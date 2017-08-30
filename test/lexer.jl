@@ -30,7 +30,7 @@ end # testset
         token_strs = ["𝘋", " ", "=", "2", "β", ""]
         for (i, n) in enumerate(l)
             @test T.kind(n) == kinds[i]
-            # @test untokenize(n)  == token_strs[i]
+            @test untokenize(n)  == token_strs[i]
             @test T.startpos(n) == (1, i)
             @test T.endpos(n) == (1, i - 1 + length(token_strs[i]))
         end
@@ -122,6 +122,9 @@ end # testset
             T.WHITESPACE,T.ERROR,T.ENDMARKER]
 
     for (i, n) in enumerate(tokenize(str))
+        @test Tokens.kind(n) == kinds[i]
+    end
+    for (i, n) in enumerate(tokenize(str, Tokens.RawToken))
         @test Tokens.kind(n) == kinds[i]
     end
 
@@ -320,6 +323,8 @@ end
 @testset "inferred" begin
     l = tokenize("abc")
     @test Base.Test.@inferred Tokenize.Lexers.next_token(l).kind == T.IDENTIFIER
+    l = tokenize("abc", Tokens.RawToken)
+    @test Base.Test.@inferred typeof(Tokenize.Lexers.next_token(l)) == Tokens.RawToken
 end
 
 @testset "modifying function names (!) followed by operator" begin

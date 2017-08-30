@@ -40,11 +40,11 @@ Lexer(io::IO_t, T) where {IO_t} = Lexer{IO_t,T}(io, position(io), 1, 1, position
 Lexer(str::AbstractString, T) = Lexer(IOBuffer(str), T)
 
 """
-    tokenize(x, raw::Bool = false)
+    tokenize(x, T = Token)
 
 Returns an `Iterable` containing the tokenized input. Can be reverted by e.g.
-`join(untokenize.(tokenize(x)))`. Setting `raw` to true returns `RawTokens`, 
-which only hold token kind and position information.
+`join(untokenize.(tokenize(x)))`. Setting `T` chooses the type of token 
+produced by the lexer (`Token` or `RawToken`).
 """
 tokenize(x, ::Type{Token}) = Lexer(x, Token)
 tokenize(x, ::Type{RawToken}) = Lexer(x, RawToken)
