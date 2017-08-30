@@ -403,6 +403,8 @@ end
     @test tok("2048f0").kind == Tokens.FLOAT
     @test tok("1.:0").kind == Tokens.FLOAT
     @test tok("1.?").kind == Tokens.FLOAT
+    @test tok("0x00p2").kind == Tokens.FLOAT
+    @test tok("0x00P2").kind == Tokens.FLOAT
 end
 
 @testset "1e1" begin
