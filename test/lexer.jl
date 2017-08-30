@@ -125,14 +125,14 @@ end # testset
         @test Tokens.kind(n) == kinds[i]
     end
 
-    # @testset "roundtrippability" begin
-    #     @test join(untokenize.(collect(tokenize(str)))) == str
-    #     @test untokenize(collect(tokenize(str))) == str
-    #     @test untokenize(tokenize(str)) == str
-    #     @test_throws ArgumentError untokenize("blabla")
-    # end
+    @testset "roundtrippability" begin
+        @test join(untokenize.(collect(tokenize(str)))) == str
+        @test untokenize(collect(tokenize(str))) == str
+        @test untokenize(tokenize(str)) == str
+        @test_throws ArgumentError untokenize("blabla")
+    end
 
-    # @test all((t.endbyte - t.startbyte + 1)==sizeof(t.val) for t in tokenize(str))
+    @test all((t.endbyte - t.startbyte + 1)==sizeof(untokenize(t)) for t in tokenize(str))
 end # testset
 
 @testset "issue 5, '..'" begin

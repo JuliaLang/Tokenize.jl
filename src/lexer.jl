@@ -3,7 +3,7 @@ module Lexers
 include("utilities.jl")
 
 import ..Tokens
-import ..Tokens: Token, Kind, TokenError, UNICODE_OPS, EMPTY_TOKEN, isliteral
+import ..Tokens: AbstractToken, Token, RawToken, Kind, TokenError, UNICODE_OPS, EMPTY_TOKEN, isliteral
 
 import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BREAK, CATCH, CONST, CONTINUE,
                  DO, ELSE, ELSEIF, END, EXPORT, FALSE, FINALLY, FOR, FUNCTION, GLOBAL, LET, LOCAL, IF, IMMUTABLE,
@@ -24,7 +24,6 @@ mutable struct Lexer{IO_t <: IO}
 
     token_start_row::Int
     token_start_col::Int
-
     token_startpos::Int
 
     current_row::Int
@@ -35,10 +34,11 @@ mutable struct Lexer{IO_t <: IO}
     charstore::IOBuffer
     current_char::Char
     doread::Bool
+    raw::Bool
 end
 
-Lexer(io) = Lexer(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
-Lexer(str::AbstractString) = Lexer(IOBuffer(str))
+Lexer(io, raw) = Lexer(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false, raw)
+Lexer(str::AbstractString, raw) = Lexer(IOBuffer(str), raw)
 
 """
     tokenize(x)
@@ -46,12 +46,12 @@ Lexer(str::AbstractString) = Lexer(IOBuffer(str))
 Returns an `Iterable` containing the tokenized input. Can be reverted by e.g.
 `join(untokenize.(tokenize(x)))`.
 """
-tokenize(x) = Lexer(x)
+tokenize(x, raw = false) = Lexer(x, raw)
 
 # Iterator interface
 Base.iteratorsize(::Type{Lexer{IO_t}}) where {IO_t} = Base.SizeUnknown()
 Base.iteratoreltype(::Type{Lexer{IO_t}}) where {IO_t} = Base.HasEltype()
-Base.eltype(::Type{Lexer{IO_t}}) where {IO_t} = Token
+Base.eltype(::Type{Lexer{IO_t}}) where {IO_t} = AbstractToken
 
 function Base.start(l::Lexer)
     seekstart(l)
@@ -162,17 +162,18 @@ function readchar(l::Lexer{I}) where {I <: IO}
     return l.current_char
 end
 
-function readon(l::Lexer{I})  where {I <: IO}
-    if l.charstore.size != 0
+function readon(l::Lexer{I}) where {I <: IO}
+
+    if !l.raw && l.charstore.size != 0
         take!(l.charstore)
     end
-    write(l.charstore, l.current_char)
-    l.doread = true
+    !l.raw && write(l.charstore, l.current_char)
+    !l.raw && (l.doread = true)
     return l.current_char
 end
 
 function readoff(l::Lexer{I})  where {I <: IO}
-    l.doread = false
+    !l.raw && (l.doread = false)
     return l.current_char
 end
 
@@ -215,15 +216,23 @@ end
 Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
 function emit(l::Lexer, kind::Kind, err::TokenError = Tokens.NO_ERR)
-    if kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.ERROR
+    if !l.raw && (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
         str = String(take!(l.charstore))
+    elseif kind == Tokens.ERROR
+        str = String(l.io.data[(l.token_startpos + 1):position(l.io)])
     else
         str = ""
     end
-    tok = Token(kind, (l.token_start_row, l.token_start_col),
-                (l.current_row, l.current_col - 1),
-                startpos(l), position(l) - 1,
-                str, err)
+    if l.raw
+        tok = RawToken(kind, (l.token_start_row, l.token_start_col),
+        (l.current_row, l.current_col - 1),
+        startpos(l), position(l) - 1)
+    else
+        tok = Token(kind, (l.token_start_row, l.token_start_col),
+                    (l.current_row, l.current_col - 1),
+                    startpos(l), position(l) - 1,
+                    str, err)
+    end
     l.last_token = kind
     readoff(l)
     return tok
@@ -250,6 +259,7 @@ function next_token(l::Lexer)
     if eof(c); 
         return emit(l, Tokens.ENDMARKER)
     elseif iswhitespace(c)
+        readon(l)
         return lex_whitespace(l)
     elseif c == '['
         return emit(l, Tokens.LSQUARE)
@@ -282,6 +292,7 @@ function next_token(l::Lexer)
     elseif c == '~'
         return emit(l, Tokens.APPROX)
     elseif c == '#'
+        readon(l)
         return lex_comment(l)
     elseif c == '='
         return lex_equal(l)
