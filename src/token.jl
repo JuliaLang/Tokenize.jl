@@ -115,7 +115,7 @@ function untokenize(t::RawToken, str::String)
 end
 
 function untokenize(ts)
-    if eltype(ts) != AbstractToken
+    if !(eltype(ts) <: AbstractToken)
         throw(ArgumentError("element type of iterator has to be Token"))
     end
     io = IOBuffer()

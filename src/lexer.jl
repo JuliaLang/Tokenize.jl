@@ -18,7 +18,7 @@ isbinary(c::Char) = c == '0' || c == '1'
 isoctal(c::Char) =  '0' ≤ c ≤ '7'
 iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
 
-mutable struct Lexer{IO_t <: IO}
+mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     io::IO_t
     io_startpos::Int
 
@@ -34,24 +34,25 @@ mutable struct Lexer{IO_t <: IO}
     charstore::IOBuffer
     current_char::Char
     doread::Bool
-    raw::Bool
 end
 
-Lexer(io, raw) = Lexer(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false, raw)
+Lexer(io::IO_t, raw) where {IO_t} = Lexer{IO_t,raw ? RawToken : Token}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
 Lexer(str::AbstractString, raw) = Lexer(IOBuffer(str), raw)
 
 """
-    tokenize(x)
+    tokenize(x, raw::Bool = false)
 
 Returns an `Iterable` containing the tokenized input. Can be reverted by e.g.
-`join(untokenize.(tokenize(x)))`.
+`join(untokenize.(tokenize(x)))`. Setting `raw` to true returns `RawTokens`, 
+which only hold token kind and position information.
 """
-tokenize(x, raw = false) = Lexer(x, raw)
+tokenize(x, raw::Bool = false) = Lexer(x, raw)
 
 # Iterator interface
-Base.iteratorsize(::Type{Lexer{IO_t}}) where {IO_t} = Base.SizeUnknown()
-Base.iteratoreltype(::Type{Lexer{IO_t}}) where {IO_t} = Base.HasEltype()
-Base.eltype(::Type{Lexer{IO_t}}) where {IO_t} = AbstractToken
+Base.iteratorsize(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.SizeUnknown()
+Base.iteratoreltype(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.HasEltype()
+Base.eltype(::Type{Lexer{IO_t,T}}) where {IO_t,T} = T
+
 
 function Base.start(l::Lexer)
     seekstart(l)
@@ -162,18 +163,19 @@ function readchar(l::Lexer{I}) where {I <: IO}
     return l.current_char
 end
 
-function readon(l::Lexer{I}) where {I <: IO}
-
-    if !l.raw && l.charstore.size != 0
+readon(l::Lexer{I,RawToken}) where {I <: IO} = l.current_char
+function readon(l::Lexer{I,Token}) where {I <: IO}
+    if l.charstore.size != 0
         take!(l.charstore)
     end
-    !l.raw && write(l.charstore, l.current_char)
-    !l.raw && (l.doread = true)
+    write(l.charstore, l.current_char)
+    l.doread = true
     return l.current_char
 end
 
-function readoff(l::Lexer{I})  where {I <: IO}
-    !l.raw && (l.doread = false)
+readoff(l::Lexer{I,RawToken}) where {I <: IO} = l.current_char
+function readoff(l::Lexer{I,Token})  where {I <: IO}
+    l.doread = false
     return l.current_char
 end
 
@@ -215,24 +217,27 @@ end
 
 Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
-function emit(l::Lexer, kind::Kind, err::TokenError = Tokens.NO_ERR)
-    if !l.raw && (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
+function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
+    if (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
         str = String(take!(l.charstore))
     elseif kind == Tokens.ERROR
         str = String(l.io.data[(l.token_startpos + 1):position(l.io)])
     else
         str = ""
     end
-    if l.raw
-        tok = RawToken(kind, (l.token_start_row, l.token_start_col),
+    tok = Token(kind, (l.token_start_row, l.token_start_col),
+                (l.current_row, l.current_col - 1),
+                startpos(l), position(l) - 1,
+                str, err)
+    l.last_token = kind
+    readoff(l)
+    return tok
+end
+
+function emit(l::Lexer{IO_t,RawToken}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
+    tok = RawToken(kind, (l.token_start_row, l.token_start_col),
         (l.current_row, l.current_col - 1),
         startpos(l), position(l) - 1)
-    else
-        tok = Token(kind, (l.token_start_row, l.token_start_col),
-                    (l.current_row, l.current_col - 1),
-                    startpos(l), position(l) - 1,
-                    str, err)
-    end
     l.last_token = kind
     readoff(l)
     return tok
