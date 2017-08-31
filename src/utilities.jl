@@ -139,6 +139,52 @@ function peekchar(io::(isdefined(Base, :GenericIOBuffer) ?
     return convert(Char,c)
 end
 
+function dpeekchar(io::IOBuffer)
+    if !io.readable || io.ptr > io.size
+        return EOF_CHAR, EOF_CHAR
+    end
+    ch = convert(UInt8,io.data[io.ptr])
+    if ch < 0x80
+        ch1 = convert(Char,ch)
+        trailing = 0
+    else
+        # mimic utf8.next function
+        trailing = Base.utf8_trailing[ch+1]
+        c::UInt32 = 0
+        for j = 1:trailing
+            c += ch
+            c <<= 6
+            ch = convert(UInt8,io.data[io.ptr+j])
+        end
+        c += ch
+        c -= Base.utf8_offset[trailing+1]
+        ch1 = convert(Char,c)
+    end
+
+    offset = trailing + 1
+    
+    if !io.readable || io.ptr + offset > io.size
+        return ch1, EOF_CHAR
+    end
+    ch = convert(UInt8,io.data[io.ptr + offset])
+    if ch < 0x80
+        ch2 = convert(Char,ch)
+    else
+        # mimic utf8.next function
+        trailing = Base.utf8_trailing[ch+1]
+        c = 0
+        for j = 1:trailing
+            c += ch
+            c <<= 6
+            ch = convert(UInt8,io.data[io.ptr + j + offset])
+        end
+        c += ch
+        c -= Base.utf8_offset[trailing+1]
+        ch2 = convert(Char,c)
+    end 
+    return ch1, ch2
+end
+
 # this implementation is copied from Base
 const _CHTMP = Vector{Char}(1)
 
