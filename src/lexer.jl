@@ -632,6 +632,7 @@ function lex_digit(l::Lexer, kind)
             end
             if accept(l, "pP")
                 kind = Tokens.FLOAT
+                accept(l, "+-")
                 accept_number(l, isdigit)
             end
         elseif pc == 'b'

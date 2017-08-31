@@ -414,6 +414,8 @@ end
     @test tok("0x0.0ap23").kind == Tokens.FLOAT
     @test tok("0x0.0_0p2").kind == Tokens.FLOAT
     @test tok("0x0_0_0.0_0p2").kind == Tokens.FLOAT
+    @test tok("0x0p+2").kind == Tokens.FLOAT
+    @test tok("0x0p-2").kind == Tokens.FLOAT
 end
 
 @testset "1e1" begin
