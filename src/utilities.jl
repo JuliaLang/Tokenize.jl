@@ -122,66 +122,39 @@ function peekchar(io::(isdefined(Base, :GenericIOBuffer) ?
     if !io.readable || io.ptr > io.size
         return EOF_CHAR
     end
-    ch = convert(UInt8,io.data[io.ptr])
+    ch, _ = readutf(io)
+    return ch
+end
+
+function readutf(io, offset = 0)
+    ch = convert(UInt8, io.data[io.ptr + offset])
     if ch < 0x80
-        return convert(Char,ch)
+        return convert(Char, ch), 0
     end
-    # mimic utf8.next function
-    trailing = Base.utf8_trailing[ch+1]
+    trailing = Base.utf8_trailing[ch + 1]
     c::UInt32 = 0
     for j = 1:trailing
         c += ch
         c <<= 6
-        ch = convert(UInt8,io.data[io.ptr+j])
+        ch = convert(UInt8, io.data[io.ptr + j + offset])
     end
     c += ch
-    c -= Base.utf8_offset[trailing+1]
-    return convert(Char,c)
+    c -= Base.utf8_offset[trailing + 1]
+    return convert(Char, c), trailing
 end
 
 function dpeekchar(io::IOBuffer)
     if !io.readable || io.ptr > io.size
         return EOF_CHAR, EOF_CHAR
     end
-    ch = convert(UInt8,io.data[io.ptr])
-    if ch < 0x80
-        ch1 = convert(Char,ch)
-        trailing = 0
-    else
-        # mimic utf8.next function
-        trailing = Base.utf8_trailing[ch+1]
-        c::UInt32 = 0
-        for j = 1:trailing
-            c += ch
-            c <<= 6
-            ch = convert(UInt8,io.data[io.ptr+j])
-        end
-        c += ch
-        c -= Base.utf8_offset[trailing+1]
-        ch1 = convert(Char,c)
-    end
-
+    ch1, trailing = readutf(io)
     offset = trailing + 1
     
-    if !io.readable || io.ptr + offset > io.size
+    if io.ptr + offset > io.size
         return ch1, EOF_CHAR
     end
-    ch = convert(UInt8,io.data[io.ptr + offset])
-    if ch < 0x80
-        ch2 = convert(Char,ch)
-    else
-        # mimic utf8.next function
-        trailing = Base.utf8_trailing[ch+1]
-        c = 0
-        for j = 1:trailing
-            c += ch
-            c <<= 6
-            ch = convert(UInt8,io.data[io.ptr + j + offset])
-        end
-        c += ch
-        c -= Base.utf8_offset[trailing+1]
-        ch2 = convert(Char,c)
-    end 
+    ch2, _ = readutf(io, offset)
+    
     return ch1, ch2
 end
 

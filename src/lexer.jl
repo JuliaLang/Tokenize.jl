@@ -36,8 +36,8 @@ mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     doread::Bool
 end
 
-Lexer(io::IO_t, T) where {IO_t} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
-Lexer(str::AbstractString, T) = Lexer(IOBuffer(str), T)
+Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
+Lexer(str::AbstractString, T::Type{TT} = Token) where TT <: AbstractToken = Lexer(IOBuffer(str), T)
 
 """
     tokenize(x, T = Token)
@@ -159,7 +159,7 @@ function readchar(l::Lexer{I}) where {I <: IO}
     if l.current_char == '\n' 
         l.current_row += 1
         l.current_col = 1
-    elseif !eof(l.current_char )
+    elseif !eof(l.current_char)
         l.current_col += 1
     end
     return l.current_char
@@ -549,7 +549,7 @@ function lex_xor(l::Lexer)
     return emit(l, Tokens.XOR)
 end
 
-function accept_number{F}(l::Lexer, f::F)
+function accept_number(l::Lexer, f::F) where {F}
     while true
         pc, ppc = dpeekchar(l)
         if pc == '_' && !f(ppc)
@@ -600,7 +600,7 @@ function lex_digit(l::Lexer, kind)
             readchar(l)
             accept(l, "+-")
             if accept_batch(l, isdigit)
-                if accept(l, '.' ) # 1.2e2.3 -> [ERROR, 3]
+                if accept(l, '.') # 1.2e2.3 -> [ERROR, 3]
                     return emit_error(l)
                 end
             else
@@ -616,7 +616,7 @@ function lex_digit(l::Lexer, kind)
         readchar(l)
         accept(l, "+-")
         if accept_batch(l, isdigit)
-            if accept(l, '.' ) # 1.2e2.3 -> [ERROR, 3]
+            if accept(l, '.') # 1.2e2.3 -> [ERROR, 3]
                 return emit_error(l)
             end
         else
@@ -850,7 +850,7 @@ end
 function readrest(l, c)
     while true
         pc, ppc = dpeekchar(l)
-        if !is_identifier_char(pc) || (pc == '!' && ppc == '=' )
+        if !is_identifier_char(pc) || (pc == '!' && ppc == '=')
             break
         end
         c = readchar(l)
