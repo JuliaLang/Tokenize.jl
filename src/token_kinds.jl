@@ -1333,7 +1333,7 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '⋅' => UNICODE_DOT)
 
 
-UNICODE_OPS_REVERSE = Dict{Kind,Symbol}()
+const UNICODE_OPS_REVERSE = Dict{Kind,Symbol}()
 for (k, v) in UNICODE_OPS
     UNICODE_OPS_REVERSE[v] = Symbol(k)
 end
