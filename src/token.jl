@@ -71,7 +71,7 @@ struct RawToken <: AbstractToken
 end
 function RawToken(kind::Kind, startposition::Tuple{Int, Int}, endposition::Tuple{Int, Int},
     startbyte::Int, endbyte::Int)
-Token(kind, startposition, endposition, startbyte, endbyte, NO_ERR)
+RawToken(kind, startposition, endposition, startbyte, endbyte, NO_ERR)
 end
 RawToken() = RawToken(ERROR, (0,0), (0,0), 0, 0, UNKNOWN)
 
