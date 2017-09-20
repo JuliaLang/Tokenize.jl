@@ -355,7 +355,7 @@ function next_token(l::Lexer)
     elseif (k = get(UNICODE_OPS, c, Tokens.ERROR)) != Tokens.ERROR
         return emit(l, k)
     else
-        emit_error(l)
+        return emit_error(l)
     end
 end
 
