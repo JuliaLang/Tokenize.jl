@@ -4,6 +4,7 @@
     COMMENT, # aadsdsa, #= fdsf #=
     WHITESPACE, # '\n   \t'
     IDENTIFIER, # foo, Σxx
+    SPEC_OP,
     AT_SIGN, # @
     COMMA, #,
     SEMICOLON, # ;

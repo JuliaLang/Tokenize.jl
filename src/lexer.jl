@@ -3,7 +3,7 @@ module Lexers
 include("utilities.jl")
 
 import ..Tokens
-import ..Tokens: AbstractToken, Token, RawToken, Kind, TokenError, UNICODE_OPS, EMPTY_TOKEN, isliteral
+import ..Tokens: AbstractToken, Token, RawToken, Kind, TokenError, UNICODE_OPS, EMPTY_TOKEN, isliteral, isoperator
 
 import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BITSTYPE, BREAK, CATCH, CONST, CONTINUE,
                  DO, ELSE, ELSEIF, END, EXPORT, FALSE, FINALLY, FOR, FUNCTION, GLOBAL, LET, LOCAL, IF, IMMUTABLE,
@@ -17,6 +17,9 @@ export tokenize
 @inline isbinary(c::Char) = c == '0' || c == '1'
 @inline isoctal(c::Char) =  '0' ≤ c ≤ '7'
 @inline iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
+@inline isopsuffix(c::Char) = !isascii(c) && !isempty(searchsorted(opsuffixes, c))
+const opsuffixes = unique(sort(collect("₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁᵂᵃᵇᵈᵉᵍᵏᵐᵒᵖᵗᵘᵛᵝᵞᵟᵠᵡᵢᵣᵤᵥᵦᵧᵨᵩᵪᶜᶠᶥᶦᶫᶰᶸᶻᶿ ⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿₐₑₒₓₕₖₗₘₙₚₛₜⱼⱽ" * "′″‴‵‶‷⁗")))
+
 
 mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     io::IO_t
@@ -222,7 +225,8 @@ end
 Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
 function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
-    if (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
+    if (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT ||
+            kind == Tokens.WHITESPACE || kind == Tokens.SPEC_OP)
         str = String(take!(l.charstore))
     elseif kind == Tokens.ERROR
         str = String(l.io.data[(l.token_startpos + 1):position(l.io)])
@@ -267,6 +271,9 @@ function next_token(l::Lexer)
     c = readchar(l)
     if eof(c);
         return emit(l, Tokens.ENDMARKER)
+    elseif isopsuffix(c)
+        readon(l)
+        return lex_opsuffix(l, c)
     elseif iswhitespace(c)
         readon(l)
         return lex_whitespace(l)
@@ -352,6 +359,16 @@ function next_token(l::Lexer)
     end
 end
 
+function lex_opsuffix(l::Lexer, c::Char)
+    if isoperator(l.last_token)
+        accept_batch(l, isopsuffix)
+        return emit(l, Tokens.SPEC_OP)
+    elseif is_identifier_start_char(c)
+        return lex_identifier(l, c)
+    else
+        emit_error(l)
+    end
+end
 
 # Lex whitespace, a whitespace char has been consumed
 function lex_whitespace(l::Lexer)
