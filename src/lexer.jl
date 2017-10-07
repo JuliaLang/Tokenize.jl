@@ -628,6 +628,7 @@ function lex_digit(l::Lexer, kind)
         kind == Tokens.INTEGER
         if pc == 'x'
             readchar(l)
+            !ishex(ppc) && return emit_error(l)
             accept_number(l, ishex)
             if accept(l, '.')
                 accept_number(l, ishex)
@@ -638,9 +639,11 @@ function lex_digit(l::Lexer, kind)
                 accept_number(l, isdigit)
             end
         elseif pc == 'b'
+            !isbiary(ppc) && return emit_error(l)
             readchar(l)
             accept_number(l, isbinary)
         elseif pc == 'o'
+            !isocal(ppc) && return emit_error(l)
             readchar(l)
             accept_number(l, isoctal)
         end
