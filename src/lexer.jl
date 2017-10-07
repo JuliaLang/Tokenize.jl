@@ -639,11 +639,11 @@ function lex_digit(l::Lexer, kind)
                 accept_number(l, isdigit)
             end
         elseif pc == 'b'
-            !isbiary(ppc) && return emit_error(l)
+            !isbinary(ppc) && return emit_error(l)
             readchar(l)
             accept_number(l, isbinary)
         elseif pc == 'o'
-            !isocal(ppc) && return emit_error(l)
+            !isoctal(ppc) && return emit_error(l)
             readchar(l)
             accept_number(l, isoctal)
         end
