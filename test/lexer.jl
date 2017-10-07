@@ -468,4 +468,5 @@ end
 @test tok("0b").kind == T.ERROR
 @test tok("0o").kind == T.ERROR
 @test tok("0x 2", 1).kind == T.ERROR
+@test tok("0x.1p1").kind == T.FLOAT
 end
