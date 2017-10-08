@@ -90,7 +90,8 @@ exactkind(t::AbstractToken) = t.kind
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
 function untokenize(t::Token)
-    if t.kind == IDENTIFIER || isliteral(t.kind) || t.kind == COMMENT || t.kind == WHITESPACE || t.kind == ERROR
+    if t.kind == IDENTIFIER || isliteral(t.kind) || t.kind == COMMENT ||
+            t.kind == WHITESPACE || t.kind == ERROR || t.kind == SPEC_OP
         return t.val
     elseif iskeyword(t.kind)
         return lowercase(string(t.kind))
