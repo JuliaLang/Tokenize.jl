@@ -529,6 +529,7 @@
             DOUBLE_LINE_SLANTED_GREATER_THAN_OR_EQUAL_TO, # ⫺
             RIGHT_TACK, # ⊢
             LEFT_TACK, # ⊣
+            PERP, # ⟂
         end_comparison,
 
         # Level 7
@@ -1157,6 +1158,7 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '⫺' => DOUBLE_LINE_SLANTED_GREATER_THAN_OR_EQUAL_TO,
 '⊢' => RIGHT_TACK,
 '⊣' => LEFT_TACK,
+'⟂' => PERP,
 '⊕' => CIRCLED_PLUS,
 '⊖' => CIRCLED_MINUS,
 '⊞' => SQUARED_PLUS,
