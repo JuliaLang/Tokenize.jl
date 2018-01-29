@@ -59,6 +59,9 @@
     begin_literal,
         LITERAL, # general
         INTEGER, # 4
+        BIN_INT, # 0b1
+        HEX_INT, # 0x0
+        OCT_INT, # 0o0
         FLOAT, # 3.5, 3.7e+3
         STRING, # "foo"
         TRIPLE_STRING, # """ foo \n """
