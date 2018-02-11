@@ -54,9 +54,7 @@ tokenize(x) = Lexer(x, Token)
 
 # Iterator interface
 Base.IteratorSize(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.SizeUnknown()
-# Base.iteratorsize(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.SizeUnknown()
 Base.IteratorEltype(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.HasEltype()
-# Base.iteratoreltype(::Type{Lexer{IO_t,T}}) where {IO_t,T} = Base.HasEltype()
 Base.eltype(::Type{Lexer{IO_t,T}}) where {IO_t,T} = T
 
 
