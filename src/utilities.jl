@@ -38,7 +38,7 @@ const utf8_offset = [0x00000000
                     0xfa082080
                     0x82082080]
 # const EOF_CHAR = convert(Char,typemax(UInt32))
-const EOF_CHAR = typemax(Char)
+const EOF_CHAR = '\e'
 
 
 function is_cat_id_start(ch::Char, cat::Integer)
