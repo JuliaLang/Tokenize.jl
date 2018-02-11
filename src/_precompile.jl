@@ -91,7 +91,7 @@ function _precompile_()
     
     precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token}, Char,))
     precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token}, String,))
-    precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token},typeof( Base.UTF8proc.isdigit),))
+    precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token},typeof( Base.isdigit),))
     precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token},typeof( Tokenize.Lexers.iswhitespace),))
     precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token},typeof( Tokenize.Lexers.is_identifier_char),))
     precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.Token},typeof(Tokenize.Lexers.ishex),))
