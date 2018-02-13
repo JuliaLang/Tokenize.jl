@@ -470,3 +470,7 @@ end
 @test tok("0x 2", 1).kind == T.ERROR
 @test tok("0x.1p1").kind == T.FLOAT
 end
+
+@testset "perp" begin
+    @test tok("1 ⟂ 2", 3).kind==T.PERP
+end
