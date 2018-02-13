@@ -28,8 +28,22 @@ The JuliaParser.jl package is licensed under the MIT "Expat" License:
 
 import Base.Unicode
 
-const utf8_trailing = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
+
+@inline function utf8_trailing(i)
+    if i < 193
+        return 0
+    elseif i < 225
+        return 1
+    elseif i < 241
+        return 2
+    elseif i < 249
+        return 3
+    elseif i < 253
+        return 4
+    else
+        return 5
+    end
+end
 
 const utf8_offset = [0x00000000
                     0x00003080
@@ -38,7 +52,7 @@ const utf8_offset = [0x00000000
                     0xfa082080
                     0x82082080]
 # const EOF_CHAR = convert(Char,typemax(UInt32))
-const EOF_CHAR = '\e'
+const EOF_CHAR = typemax(Char)
 
 
 function is_cat_id_start(ch::Char, cat::Integer)
@@ -96,6 +110,7 @@ function is_cat_id_start(ch::Char, cat::Integer)
 end
 
 function is_identifier_char(c::Char)
+    c == EOF_CHAR && return false
     if ((c >= 'A' && c <= 'Z') ||
         (c >= 'a' && c <= 'z') || c == '_' ||
         (c >= '0' && c <= '9') || c == '!')
@@ -118,6 +133,7 @@ function is_identifier_char(c::Char)
 end
 
 function is_identifier_start_char(c::Char)
+    c == EOF_CHAR && return false
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
         return true
     elseif (UInt32(c) < 0xA1 || UInt32(c) > 0x10ffff)
@@ -128,8 +144,7 @@ function is_identifier_start_char(c::Char)
 end
 
 
-function peekchar(io::(isdefined(Base, :GenericIOBuffer) ?
-                       Base.GenericIOBuffer : Base.AbstractIOBuffer))
+function peekchar(io::Base.GenericIOBuffer)
     if !io.readable || io.ptr > io.size
         return EOF_CHAR
     end
@@ -142,7 +157,7 @@ function readutf(io, offset = 0)
     if ch < 0x80
         return convert(Char, ch), 0
     end
-    trailing = utf8_trailing[ch + 1]
+    trailing = utf8_trailing(ch + 1)
     c::UInt32 = 0
     for j = 1:trailing
         c += ch
@@ -160,23 +175,22 @@ function dpeekchar(io::IOBuffer)
     end
     ch1, trailing = readutf(io)
     offset = trailing + 1
-    
+
     if io.ptr + offset > io.size
         return ch1, EOF_CHAR
     end
     ch2, _ = readutf(io, offset)
-    
+
     return ch1, ch2
 end
 
 # this implementation is copied from Base
-const _CHTMP = Vector{Char}(1)
-
 peekchar(s::IOStream) = begin
+    _CHTMP = Ref{Char}()
     if ccall(:ios_peekutf8, Int32, (Ptr{Nothing}, Ptr{Char}), s, _CHTMP) < 0
         return EOF_CHAR
     end
-    return _CHTMP[1]
+    return _CHTMP[]
 end
 
 eof(io::IO) = Base.eof(io)
