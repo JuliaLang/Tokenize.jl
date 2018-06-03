@@ -235,6 +235,7 @@ function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR)
                 (l.current_row, l.current_col - 1),
                 startpos(l)-1, position(l) - 1,
                 str, err, true)
+        l.dotop = EMPTY_TOKEN(Token)
     else
         tok = Token(kind, (l.token_start_row, l.token_start_col),
                 (l.current_row, l.current_col - 1),
@@ -248,7 +249,13 @@ function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR)
 end
 
 function emit(l::Lexer{IO_t,RawToken}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
-    dotoffset = Int(l.dotop.kind != Tokens.ERROR)
+    if l.dotop.kind != Tokens.ERROR
+        dotoffset = 1
+    else
+        dotoffset = 0
+        l.dotop = EMPTY_TOKEN(RawToken)
+    end
+    
     tok = RawToken(kind, (l.token_start_row, l.token_start_col - dotoffset),
         (l.current_row, l.current_col - 1),
         startpos(l) - dotoffset, position(l) - 1, err)
