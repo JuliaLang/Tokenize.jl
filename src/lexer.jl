@@ -34,9 +34,10 @@ mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     charstore::IOBuffer
     current_char::Char
     doread::Bool
+    dotop::AbstractToken
 end
 
-Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
+Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false, EMPTY_TOKEN(T))
 Lexer(str::AbstractString, T::Type{TT} = Token) where TT <: AbstractToken = Lexer(IOBuffer(str), T)
 
 @inline token_type(l::Lexer{IO_t, TT}) where {IO_t, TT} = TT
@@ -229,19 +230,28 @@ function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR)
     else
         str = ""
     end
-    tok = Token(kind, (l.token_start_row, l.token_start_col),
+    if l.dotop.kind != Tokens.ERROR
+        tok = Token(kind, (l.token_start_row, l.token_start_col-1),
+                (l.current_row, l.current_col - 1),
+                startpos(l)-1, position(l) - 1,
+                str, err, true)
+    else
+        tok = Token(kind, (l.token_start_row, l.token_start_col),
                 (l.current_row, l.current_col - 1),
                 startpos(l), position(l) - 1,
-                str, err)
+                str, err,false)
+    end
+
     l.last_token = kind
     readoff(l)
     return tok
 end
 
 function emit(l::Lexer{IO_t,RawToken}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
-    tok = RawToken(kind, (l.token_start_row, l.token_start_col),
+    dotoffset = Int(l.dotop.kind != Tokens.ERROR)
+    tok = RawToken(kind, (l.token_start_row, l.token_start_col - dotoffset),
         (l.current_row, l.current_col - 1),
-        startpos(l), position(l) - 1, err)
+        startpos(l) - dotoffset, position(l) - 1, err)
     l.last_token = kind
     readoff(l)
     return tok
@@ -816,7 +826,12 @@ function lex_dot(l::Lexer)
         readon(l)
         return lex_digit(l, Tokens.FLOAT)
     else
-        return emit(l, Tokens.DOT)
+        if peekchar(l) == '*'
+            l.dotop = emit(l, Tokens.DOT)
+            next_token(l)
+        else
+            return emit(l, Tokens.DOT)
+        end
     end
 end
 
