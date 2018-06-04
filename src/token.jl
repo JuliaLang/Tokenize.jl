@@ -101,7 +101,8 @@ function untokenize(t::Token)
         else
             str = string(UNICODE_OPS_REVERSE[t.kind])
         end
-        return str
+
+        return string(str, t.val)
     elseif t.kind == LPAREN
         return "("
     elseif t.kind == LSQUARE

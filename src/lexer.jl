@@ -17,6 +17,41 @@ export tokenize
 @inline isbinary(c::Char) = c == '0' || c == '1'
 @inline isoctal(c::Char) =  '0' ≤ c ≤ '7'
 @inline iswhitespace(c::Char) = Base.UTF8proc.isspace(c)
+isopsuffix = let x = UInt32.(sort(unique(collect("₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁᵂᵃᵇᵈᵉᵍᵏᵐᵒᵖᵗᵘᵛᵝᵞᵟᵠᵡᵢᵣᵤᵥᵦᵧᵨᵩᵪᶜᶠᶥᶦᶫᶰᶸᶻᶿ ⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿₐₑₒₓₕₖₗₘₙₚₛₜⱼⱽ" * "′″‴‵‶‷⁗"))))
+    n = length(x)
+    out = []
+    i = 1
+    while i <= n 
+        out1 = [x[i]]
+        while i+1 <= n && x[i+1] == x[i] + 1
+            push!(out1, x[i + 1])
+            i += 1
+        end
+        push!(out, out1)
+        i += 1
+    end
+    ex = :()
+    first = true
+    for cs in out
+        if length(cs) == 1
+            ex1 = :(c == $(UInt32(cs[1])))
+        else
+            ex1 = :($(UInt32(cs[1])) <= c <= $(UInt32(cs[end])))
+        end
+        if first
+            ex = ex1
+            first = false
+        else
+            ex = :($ex || $ex1)
+        end
+    end
+    ex = :(@inline isopsuffix(c1) = (c = UInt32(c1);$ex))
+    eval(current_module(), ex)
+end
+
+function opcanhavesuffix(k)
+    return Tokens.LEFTWARDS_ARROW <= k
+end
 
 mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     io::IO_t
@@ -225,6 +260,11 @@ Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
     if (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
         str = String(take!(l.charstore))
+    elseif opcanhavesuffix(kind)
+        str = ""
+        while isopsuffix(peekchar(l))
+            str = string(str, readchar(l))
+        end
     elseif kind == Tokens.ERROR
         str = String(l.io.data[(l.token_startpos + 1):position(l.io)])
     else
