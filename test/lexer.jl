@@ -470,3 +470,43 @@ end
 @test tok("0x 2", 1).kind == T.ERROR
 @test tok("0x.1p1").kind == T.FLOAT
 end
+
+
+@testset "dotted and suffixed operators" begin
+ops = collect(values(Main.Tokenize.Tokens.UNICODE_OPS_REVERSE))
+for op in ops
+    str1 = "$op b"
+    str2 = ".$op b"
+    str3 = "a $op b"
+    str4 = "a .$op b"
+    str5 = "a $(op)₁ b"
+    str6 = "a .$(op)₁ b"
+    ex1 = Meta.parse(str1, raise = false)
+    ex2 = Meta.parse(str2, raise = false)
+    ex3 = Meta.parse(str3, raise = false)
+    ex4 = Meta.parse(str4, raise = false)
+    ex5 = Meta.parse(str5, raise = false)
+    ex6 = Meta.parse(str6, raise = false)
+    if ex1.head != :error # unary
+    elseif ex3.head != :error # binary
+        t3 = collect(tokenize(str3))
+        exop3 = ex3.head == :call ? ex3.args[1] : ex3.head
+        @test Symbol(Tokenize.Tokens.untokenize(t3[3])) == exop3
+        if ex4.head != :error
+            t4 = collect(tokenize(str4))
+            exop4 = ex4.head == :call ? ex4.args[1] : ex4.head
+            @test Symbol(Tokenize.Tokens.untokenize(t4[3])) == exop4
+        elseif ex5.head != :error
+            t5 = collect(tokenize(str5))
+            exop5 = ex5.head == :call ? ex5.args[1] : ex5.head
+            @test Symbol(Tokenize.Tokens.untokenize(t5[3])) == exop5
+        elseif ex6.head != :error
+            t6 = collect(tokenize(str6))
+            exop6 = ex6.head == :call ? ex6.args[1] : ex6.head
+            @test Symbol(Tokenize.Tokens.untokenize(t6[3])) == exop6
+        end
+    end
+end
+
+
+end

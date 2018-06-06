@@ -18,6 +18,8 @@ export tokenize
 @inline isoctal(c::Char) =  '0' ≤ c ≤ '7'
 @inline iswhitespace(c::Char) = Base.isspace(c)
 
+
+
 mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     io::IO_t
     io_startpos::Int
@@ -34,9 +36,10 @@ mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     charstore::IOBuffer
     current_char::Char
     doread::Bool
+    dotop::AbstractToken
 end
 
-Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false)
+Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken} = Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), ' ', false, EMPTY_TOKEN(T))
 Lexer(str::AbstractString, T::Type{TT} = Token) where TT <: AbstractToken = Lexer(IOBuffer(str), T)
 
 @inline token_type(l::Lexer{IO_t, TT}) where {IO_t, TT} = TT
@@ -226,22 +229,49 @@ function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR)
         str = String(take!(l.charstore))
     elseif kind == Tokens.ERROR
         str = String(l.io.data[(l.token_startpos + 1):position(l.io)])
+    elseif optakessuffix(kind)
+        str = ""
+        while isopsuffix(peekchar(l))
+            str = string(str, readchar(l))
+        end
     else
         str = ""
     end
-    tok = Token(kind, (l.token_start_row, l.token_start_col),
+    if l.dotop.kind != Tokens.ERROR
+        tok = Token(kind, (l.token_start_row, l.token_start_col-1),
+                (l.current_row, l.current_col - 1),
+                startpos(l)-1, position(l) - 1,
+                str, err, true)
+        l.dotop = EMPTY_TOKEN(Token)
+    else
+        tok = Token(kind, (l.token_start_row, l.token_start_col),
                 (l.current_row, l.current_col - 1),
                 startpos(l), position(l) - 1,
-                str, err)
+                str, err,false)
+    end
     l.last_token = kind
     readoff(l)
     return tok
 end
 
 function emit(l::Lexer{IO_t,RawToken}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
-    tok = RawToken(kind, (l.token_start_row, l.token_start_col),
+    if optakessuffix(kind)
+        while isopsuffix(peekchar(l))
+            readchar(l)
+        end
+    end
+
+    if l.dotop.kind != Tokens.ERROR
+        tok = RawToken(kind, (l.token_start_row, l.token_start_col),
         (l.current_row, l.current_col - 1),
-        startpos(l), position(l) - 1, err)
+        startpos(l), position(l) - 1, err, true)
+        l.dotop = EMPTY_TOKEN(RawToken)
+    else
+        tok = RawToken(kind, (l.token_start_row, l.token_start_col),
+        (l.current_row, l.current_col - 1),
+        startpos(l), position(l) - 1, err, false)
+    end
+
     l.last_token = kind
     readoff(l)
     return tok
@@ -816,7 +846,77 @@ function lex_dot(l::Lexer)
         readon(l)
         return lex_digit(l, Tokens.FLOAT)
     else
-        return emit(l, Tokens.DOT)
+        pc, dpc = dpeekchar(l)
+        if dotop1(pc)
+            l.dotop = emit(l, Tokens.DOT)
+            return next_token(l)
+        elseif pc =='+'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_plus(l)
+        elseif pc =='-'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_minus(l)
+        elseif pc =='*'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_star(l)
+        elseif pc =='/'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_forwardslash(l)
+        elseif pc =='\\'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_backslash(l)
+        elseif pc =='^'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_circumflex(l)
+        elseif pc =='<'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_less(l)
+        elseif pc =='>'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_greater(l)
+        elseif pc =='&' 
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            if accept(l, "=")
+                return emit(l, Tokens.AND_EQ)
+            else
+                return emit(l, Tokens.AND)
+            end
+        elseif pc =='%'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_percent(l)
+        elseif pc == '=' && dpc != '>'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_equal(l)
+        elseif pc == '|' && dpc != '|'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_bar(l)
+        elseif pc == '!' && dpc == '='
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_exclaim(l)
+        elseif pc == '⊻'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_xor(l)
+        elseif pc == '÷'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_division(l)
+        else
+            return emit(l, Tokens.DOT)
+        end
     end
 end
 
