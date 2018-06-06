@@ -18,8 +18,6 @@ export tokenize
 @inline isoctal(c::Char) =  '0' ≤ c ≤ '7'
 @inline iswhitespace(c::Char) = Base.isspace(c)
 
-
-
 mutable struct Lexer{IO_t <: IO, T <: AbstractToken}
     io::IO_t
     io_startpos::Int
