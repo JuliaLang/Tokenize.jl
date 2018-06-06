@@ -201,8 +201,9 @@ takechar(io::IO) = (readchar(io); io)
 
 # Checks whether a Char is an operator, which can not be juxtaposed with another
 # Char to be an operator, can be prefixed by a dot (.)
-@inline dotop1(c::Char) = dotop1(UInt32(c))
-@inline function dotop1(c::UInt32)
+@inline function dotop1(c1::Char)
+    c1 == EOF_CHAR && return false
+    c = UInt32(c1)
     c == 0x0000002e ||
     c == 0x000000b1 ||
     c == 0x000000d7 ||
@@ -271,8 +272,10 @@ takechar(io::IO) = (readchar(io); io)
     0x0000ffe9 <= c <= 0x0000ffec
 end
 
-@inline isopsuffix(c::Char) = isopsuffix(UInt32(c))
-@inline function isopsuffix(c::UInt32)
+
+@inline function isopsuffix(c1::Char)
+    c1 == EOF_CHAR && return false
+    c = UInt32(c1)
     0x000000b2 <= c <= 0x000000b3 ||
     c == 0x000000b9 ||
     c == 0x000002b0 ||
