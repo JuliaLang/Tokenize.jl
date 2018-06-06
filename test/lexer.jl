@@ -507,6 +507,8 @@ for op in ops
         end
     end
 end
+end
 
-
+@testset "perp" begin 
+    @test tok("1 ⟂ 2", 3).kind==T.PERP 
 end

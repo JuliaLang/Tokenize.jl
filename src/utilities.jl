@@ -82,7 +82,7 @@ function is_cat_id_start(ch::Char, cat::Integer)
 
               (c >= 0x266f &&
                (c == 0x266f || c == 0x27d8 || c == 0x27d9 || # ♯, ⟘, ⟙
-                (c >= 0x27c0 && c <= 0x27c2) ||  # ⟀, ⟁, ⟂
+                (c >= 0x27c0 && c <= 0x27c1) ||  # ⟀, ⟁
                 (c >= 0x29b0 && c <= 0x29b4) ||  # ⦰, ⦱, ⦲, ⦳, ⦴
                 (c >= 0x2a00 && c <= 0x2a06) ||  # ⨀, ⨁, ⨂, ⨃, ⨄, ⨅, ⨆
                 (c >= 0x2a09 && c <= 0x2a16) ||  # ⨉, ⨊, ⨋, ⨌, ⨍, ⨎, ⨏, ⨐, ⨑, ⨒,
@@ -200,7 +200,7 @@ readchar(io::IO) = eof(io) ? EOF_CHAR : read(io, Char)
 takechar(io::IO) = (readchar(io); io)
 
 # Checks whether a Char is an operator, which can not be juxtaposed with another
-# Char to be an operator, can be prefixed by a dot (.)
+# Char to be an operator (i.e <=), and can be prefixed by a dot (.)
 @inline function dotop1(c1::Char)
     c1 == EOF_CHAR && return false
     c = UInt32(c1)
@@ -239,6 +239,7 @@ takechar(io::IO) = (readchar(io); io)
     0x000022d5 <= c <= 0x000022ed ||
     0x000022f2 <= c <= 0x000022ff ||
     c == 0x000025b7 ||
+    c == 0x000027c2 ||
     0x000027c8 <= c <= 0x000027c9 ||
     0x000027d1 <= c <= 0x000027d2 ||
     0x000027d5 <= c <= 0x000027d7 ||
