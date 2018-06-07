@@ -204,7 +204,10 @@ takechar(io::IO) = (readchar(io); io)
 @inline function dotop1(c1::Char)
     c1 == EOF_CHAR && return false
     c = UInt32(c1)
+    c == 0x00000021 ||
     c == 0x0000002e ||
+    c == 0x0000007e ||
+    c == 0x000000ac ||
     c == 0x000000b1 ||
     c == 0x000000d7 ||
     c == 0x0000214b ||
@@ -221,7 +224,7 @@ takechar(io::IO) = (readchar(io); io)
     0x00002208 <= c <= 0x0000220d ||
     0x00002213 <= c <= 0x00002214 ||
     0x00002217 <= c <= 0x00002219 ||
-    c == 0x0000221d ||
+    0x0000221a <= c <= 0x0000221d ||
     0x00002224 <= c <= 0x0000222a ||
     0x00002237 <= c <= 0x00002238 ||
     0x0000223a <= c <= 0x0000223b ||

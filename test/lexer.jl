@@ -474,9 +474,11 @@ end
 
 @testset "dotted and suffixed operators" begin
 ops = collect(values(Main.Tokenize.Tokens.UNICODE_OPS_REVERSE))
+
 for op in ops
-    str1 = "$op b"
-    str2 = ".$op b"
+    op in (:isa, :in, :where, Symbol('\''), :?, :(:)) && continue
+    str1 = "$(op)b"
+    str2 = ".$(op)b"
     str3 = "a $op b"
     str4 = "a .$op b"
     str5 = "a $(op)₁ b"
@@ -488,6 +490,14 @@ for op in ops
     ex5 = Meta.parse(str5, raise = false)
     ex6 = Meta.parse(str6, raise = false)
     if ex1.head != :error # unary
+        t1 = collect(tokenize(str1))
+        exop1 = ex1.head == :call ? ex1.args[1] : ex1.head
+        @test Symbol(Tokenize.Tokens.untokenize(t1[1])) == exop1
+        if ex2.head != :error
+            t2 = collect(tokenize(str2))
+            exop2 = ex2.head == :call ? ex2.args[1] : ex2.head
+            @test Symbol(Tokenize.Tokens.untokenize(t2[1])) == exop2
+        end
     elseif ex3.head != :error # binary
         t3 = collect(tokenize(str3))
         exop3 = ex3.head == :call ? ex3.args[1] : ex3.head
