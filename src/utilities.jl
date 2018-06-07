@@ -201,6 +201,8 @@ takechar(io::IO) = (readchar(io); io)
 
 # Checks whether a Char is an operator, which can not be juxtaposed with another
 # Char to be an operator (i.e <=), and can be prefixed by a dot (.)
+# magic number list created by filtering ops by those that successfully parse
+# `a .(op) b` or `.(op)a` and where `length(string(op)) == 1`
 @inline function dotop1(c1::Char)
     c1 == EOF_CHAR && return false
     c = UInt32(c1)
@@ -276,7 +278,8 @@ takechar(io::IO) = (readchar(io); io)
     0x0000ffe9 <= c <= 0x0000ffec
 end
 
-
+# suffix operators
+# "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁᵂᵃᵇᵈᵉᵍᵏᵐᵒᵖᵗᵘᵛᵝᵞᵟᵠᵡᵢᵣᵤᵥᵦᵧᵨᵩᵪᶜᶠᶥᶦᶫᶰᶸᶻᶿ ⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿₐₑₒₓₕₖₗₘₙₚₛₜⱼⱽ′″‴‵‶‷⁗"
 @inline function isopsuffix(c1::Char)
     c1 == EOF_CHAR && return false
     c = UInt32(c1)
@@ -345,8 +348,6 @@ function optakessuffix(k)
     ) 
 end
 
-# suffix operators
-# "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁᵂᵃᵇᵈᵉᵍᵏᵐᵒᵖᵗᵘᵛᵝᵞᵟᵠᵡᵢᵣᵤᵥᵦᵧᵨᵩᵪᶜᶠᶥᶦᶫᶰᶸᶻᶿ ⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿₐₑₒₓₕₖₗₘₙₚₛₜⱼⱽ′″‴‵‶‷⁗"
 
 
 # Used to generate dotop1 and isopsuffix
