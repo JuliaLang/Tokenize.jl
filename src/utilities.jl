@@ -347,39 +347,3 @@ function optakessuffix(k)
     Tokens.NOT_SIGN <= k <= Tokens.QUAD_ROOT
     ) 
 end
-
-
-
-# Used to generate dotop1 and isopsuffix
-function _genchartest(x::Vector{UInt32}, fname)
-    n = length(x)
-    out = []
-    i = 1
-    while i <= n 
-        out1 = [x[i]]
-        while i+1 <= n && x[i+1] == x[i] + 1
-            push!(out1, x[i + 1])
-            i += 1
-        end
-        push!(out, out1)
-        i += 1
-    end
-    ex = :()
-    first1 = true
-    for cs in reverse(out)
-        if length(cs) == 1
-            ex1 = :(c == $(UInt32(cs[1])))
-        else
-            ex1 = :($(UInt32(cs[1])) <= c <= $(UInt32(cs[end])))
-        end
-        if first1
-            ex = ex1
-            first1 = false
-        else
-            ex = Expr(:||, ex1, ex)
-        end
-    end
-    eval(current_module(), :(@inline function $fname(c::UInt32) $ex end))
-    eval(current_module(), :(@inline $fname(c::Char) = $fname(UInt32(c))))
-end
-
