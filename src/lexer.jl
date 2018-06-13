@@ -915,6 +915,10 @@ function lex_dot(l::Lexer)
             l.dotop = emit(l, Tokens.DOT)
             readchar(l)
             return lex_division(l)
+        elseif pc == '=' && dpc == '>'
+            l.dotop = emit(l, Tokens.DOT)
+            readchar(l)
+            return lex_equal(l)
         else
             return emit(l, Tokens.DOT)
         end
