@@ -78,8 +78,6 @@ function Base.iterate(l::Lexer, isdone::Any)
     return t, t.kind == Tokens.ENDMARKER
 end
 
-# Base.done(::Lexer, isdone) = isdone
-
 function Base.show(io::IO, l::Lexer)
     print(io, typeof(l), " at position: ", position(l))
 end
