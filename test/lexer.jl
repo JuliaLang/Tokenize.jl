@@ -552,3 +552,10 @@ end
     @test untokenize(collect(tokenize(s, Tokens.RawToken))[1], s) == s
 end
 
+@testset "invalid float juxt" begin 
+    s = "1.+2"
+    @test tok(s, 1).kind == Tokens.ERROR
+    @test Tokens.isoperator(tok(s, 2).kind) 
+end
+
+
