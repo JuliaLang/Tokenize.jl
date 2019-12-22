@@ -563,4 +563,5 @@ end
     t = collect(tokenize("Int64"))[1]
     @test Tokenize.Tokens.teval(t) == Int64
     @test Tokenize.Tokens.ttypeof(t) == DataType
+    @test Tokenize.Tokens.tisa(t, DataType) == true
 end

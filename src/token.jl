@@ -126,6 +126,22 @@ DataType
 ```
 """
 ttypeof(t::Token) = typeof(teval(t))
+
+"""
+    tisa(t, T::Type)
+
+Compares the specified type with the type of an evaluated Token
+
+# Examples
+```julia
+julia> t = collect(tokenize("Int64"))
+
+julia> tisa(t, DataType)
+true
+```
+"""
+tisa(t::Token, T::Type) = isa(teval(t), T)
+
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
 startbyte(t::AbstractToken) = t.startbyte

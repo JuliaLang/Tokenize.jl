@@ -47,6 +47,7 @@ kind(t)::Token.Kind          # kind of the token
 exactkind(t)::Token.Kind     # exact kind of the token
 teval(t)                     # Parses and evaluates a Token.
 ttypeof(t)                   # Returns the type of an evaluated Token
+tisa(t)                      # Compares the specified type with the type of an evaluated Token
 ```
 
 The difference between `kind` and `exactkind` is that `kind` returns `OP` for all operators and `KEYWORD` for all keywords while `exactkind` returns a unique kind for all different operators and keywords, ex;
