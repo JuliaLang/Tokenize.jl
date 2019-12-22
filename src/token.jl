@@ -100,8 +100,12 @@ Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize
 
 """
     teval(t)
+    teval(t, checkIsdefined::Bool=false)
 
 Parses and evaluates a Token.
+
+If you set checkIsdefined to true, and t is not defined in the scope, it returns undef.
+
 # Examples
 ```julia
 julia> t = collect(tokenize("Int64"))
@@ -110,12 +114,20 @@ julia> teval(t)
 Int64
 ```
 """
-teval(t::T) where {T <: Union{Token, Array{Token}}} = eval(Meta.parse(t))
-
+function teval(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+    pt = Meta.parse(t)
+    if checkIsdefined && !(isdefined(@__MODULE__,pt))
+        return undef
+    end
+    return eval(pt)
+end
 """
     ttypeof(t)
+    ttypeof(t, checkIsdefined::Bool = false)
 
 Returns the type of an evaluated Token
+
+If you set checkIsdefined to true, and t is not defined in the scope, it returns undef.
 
 # Examples
 ```julia
@@ -125,12 +137,15 @@ julia> ttypeof(t)
 DataType
 ```
 """
-ttypeof(t::T) where {T <: Union{Token, Array{Token}}} = typeof(teval(t))
+ttypeof(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(teval(t, checkIsdefined))
 
 """
     tisa(t, T::Type)
+    tisa(t, Tspecified::Type, checkIsdefined::Bool = false)
 
 Compares the specified type with the type of an evaluated Token
+
+If you set checkIsdefined to true, and t is not defined in the scope, it returns undef.
 
 # Examples
 ```julia
@@ -140,7 +155,7 @@ julia> tisa(t, DataType)
 true
 ```
 """
-tisa(t::T, Tspecified::Type) where {T <: Union{Token, Array{Token}}} = isa(teval(t), Tspecified)
+tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(teval(t, checkIsdefined), Tspecified)
 
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
