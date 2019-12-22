@@ -45,6 +45,7 @@ endbyte(t)::Int              # byte offset where the token ends
 untokenize(t)::String        # string representation of the token
 kind(t)::Token.Kind          # kind of the token
 exactkind(t)::Token.Kind     # exact kind of the token
+teval(t)                     # Parses and evaluates a Token.
 ```
 
 The difference between `kind` and `exactkind` is that `kind` returns `OP` for all operators and `KEYWORD` for all keywords while `exactkind` returns a unique kind for all different operators and keywords, ex;

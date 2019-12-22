@@ -559,3 +559,7 @@ end
 end
 
 
+@testset "evaluated tokens utilities" begin
+    t = collect(tokenize("Int64"))[1]
+    @test Tokenize.Tokens.teval(t) == Int64
+end

@@ -95,7 +95,23 @@ function kind(t::AbstractToken)
     return t.kind
 end
 exactkind(t::AbstractToken) = t.kind
+
 Meta.parse(t::Token) = Meta.parse(untokenize(t))
+
+"""
+    teval(t)
+
+Parses and evaluates a Token.
+# Examples
+```julia
+julia> t = collect(tokenize("Int64"))
+
+julia> teval(t)
+Int64
+```
+"""
+teval(t::Token) = eval(Meta.parse(t))
+
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
 startbyte(t::AbstractToken) = t.startbyte
