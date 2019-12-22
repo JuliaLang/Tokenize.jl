@@ -112,6 +112,20 @@ Int64
 """
 teval(t::Token) = eval(Meta.parse(t))
 
+"""
+    ttypeof(t)
+
+Returns the type of an evaluated Token
+
+# Examples
+```julia
+julia> t = collect(tokenize("Int64"))
+
+julia> ttypeof(t)
+DataType
+```
+"""
+ttypeof(t::Token) = typeof(teval(t))
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
 startbyte(t::AbstractToken) = t.startbyte
