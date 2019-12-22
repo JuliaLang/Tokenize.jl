@@ -96,7 +96,7 @@ function kind(t::AbstractToken)
 end
 exactkind(t::AbstractToken) = t.kind
 
-Meta.parse(t::Token) = Meta.parse(untokenize(t))
+Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize(t))
 
 """
     teval(t)
@@ -110,7 +110,7 @@ julia> teval(t)
 Int64
 ```
 """
-teval(t::Token) = eval(Meta.parse(t))
+teval(t::T) where {T <: Union{Token, Array{Token}}} = eval(Meta.parse(t))
 
 """
     ttypeof(t)
@@ -125,7 +125,7 @@ julia> ttypeof(t)
 DataType
 ```
 """
-ttypeof(t::Token) = typeof(teval(t))
+ttypeof(t::T) where {T <: Union{Token, Array{Token}}} = typeof(teval(t))
 
 """
     tisa(t, T::Type)
@@ -140,7 +140,7 @@ julia> tisa(t, DataType)
 true
 ```
 """
-tisa(t::Token, T::Type) = isa(teval(t), T)
+tisa(t::T, Tspecified::Type) where {T <: Union{Token, Array{Token}}} = isa(teval(t), Tspecified)
 
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
