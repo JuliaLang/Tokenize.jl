@@ -95,6 +95,7 @@ function kind(t::AbstractToken)
     return t.kind
 end
 exactkind(t::AbstractToken) = t.kind
+Meta.parse(t::Token) = Meta.parse(untokenize(t))
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
 startbyte(t::AbstractToken) = t.startbyte
