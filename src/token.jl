@@ -99,8 +99,6 @@ exactkind(t::AbstractToken) = t.kind
 Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize(t))
 
 """
-    teval(t)
-    teval(t, checkIsdefined::Bool=false)
     tgetfield(t::T)
     tgetfield(t::T, checkIsdefined::Bool=false)
     tgetfield(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
@@ -127,9 +125,14 @@ end
 
 tgetfield(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tgetfield(@__MODULE__, t, checkIsdefined)
 
+"""
+    teval(t::T, checkIsdefined::Bool=false)
+    teval(t::T, checkIsdefined::Bool=false)
+    teval(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
+
 Parses and evaluates a Token.
 
-If you set checkIsdefined to true, and t is not defined in the scope, it returns undef.
+If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
 
 # Examples
 ```julia
@@ -139,20 +142,22 @@ julia> teval(t)
 Int64
 ```
 """
-function teval(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function teval(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if checkIsdefined && !(isdefined(@__MODULE__,pt))
+    if checkIsdefined && !(isdefined(Module,pt))
         return undef
     end
-    return eval(pt)
+    return Module.eval(pt)
 end
+teval(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = teval(@__MODULE__, t, checkIsdefined)
+
 """
     ttypeof(t)
-    ttypeof(t, checkIsdefined::Bool = false)
+    ttypeof(t::T, checkIsdefined::Bool = false)
 
 Returns the type of an evaluated Token
 
-If you set checkIsdefined to true, and t is not defined in the scope, it returns undef.
+If you set checkIsdefined to true, and t is not defined in the scope it returns undef.
 
 # Examples
 ```julia
@@ -162,15 +167,15 @@ julia> ttypeof(t)
 DataType
 ```
 """
-ttypeof(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(teval(t, checkIsdefined))
+ttypeof(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(tgetfield(t, checkIsdefined))
 
 """
     tisa(t, T::Type)
-    tisa(t, Tspecified::Type, checkIsdefined::Bool = false)
+    tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false)
 
 Compares the specified type with the type of an evaluated Token
 
-If you set checkIsdefined to true, and t is not defined in the scope, it returns undef.
+If you set checkIsdefined to true, and t is not defined in the scope it returns undef.
 
 # Examples
 ```julia
@@ -180,7 +185,7 @@ julia> tisa(t, DataType)
 true
 ```
 """
-tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(teval(t, checkIsdefined), Tspecified)
+tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(tgetfield(t, checkIsdefined), Tspecified)
 
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
