@@ -98,6 +98,32 @@ exactkind(t::AbstractToken) = t.kind
 
 Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize(t))
 
+
+"""
+    tevalfast(t::T)
+    tevalfast(t::T, checkIsdefined::Bool=false)
+    tevalfast(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
+
+Parses and evaluates a Token that represents a `Symbol` or `Expr` in Julia. For `Symbol` It dispatches on the fast method based on the parsed Token.
+
+If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
+
+# Examples
+```julia
+julia> t = collect(tokenize("Int64"))
+
+julia> tevalfast(t)
+Int64
+```
+"""
+function tevalfast(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+    pt = Meta.parse(t)
+    if checkIsdefined && !(isdefined(Module,pt))
+        return undef
+    end
+    return evalfast(Module,pt)
+end
+
 """
     evalfast(x)
     evalfast(Module, x)
@@ -121,7 +147,9 @@ evalfast(x::Symbol)= getfield(@__MODULE__,x)
     tgetfield(t::T, checkIsdefined::Bool=false)
     tgetfield(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
 
-Parses and evaluates a Token (get an instance). Similar to eval, but much faster.
+See [`tevalfast`](@ref) for fast Token evaluation.
+
+Parses and evaluates a Token that represents a `Symbol` in Julia. For `Symbol` it is similar to eval, but much faster.
 
 If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
 
@@ -148,6 +176,8 @@ tgetfield(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Tok
     teval(t::T, checkIsdefined::Bool=false)
     teval(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
 
+See [`tevalfast`](@ref) for fast Token evaluation.
+
 Parses and evaluates a Token.
 
 If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
@@ -165,7 +195,7 @@ function teval(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Tok
     if checkIsdefined && !(isdefined(Module,pt))
         return undef
     end
-    return Module.eval(pt)
+    return Core.eval(Module, pt)
 end
 teval(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = teval(@__MODULE__, t, checkIsdefined)
 
@@ -185,7 +215,7 @@ julia> ttypeof(t)
 DataType
 ```
 """
-ttypeof(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(tgetfield(t, checkIsdefined))
+ttypeof(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(tevalfast(t, checkIsdefined))
 
 """
     tisa(t, T::Type)
@@ -203,7 +233,7 @@ julia> tisa(t, DataType)
 true
 ```
 """
-tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(tgetfield(t, checkIsdefined), Tspecified)
+tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(tevalfast(t, checkIsdefined), Tspecified)
 
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
