@@ -45,7 +45,8 @@ endbyte(t)::Int              # byte offset where the token ends
 untokenize(t)::String        # string representation of the token
 kind(t)::Token.Kind          # kind of the token
 exactkind(t)::Token.Kind     # exact kind of the token
-teval(t)                     # Parses and evaluates a Token.
+tevalfast(t)                 # Parses and evaluates a Token. Uses `tgetfield(t)`, `teval(t)`, `evalfast(t)`
+tisdefined(t)                # Check if a `Token` that represent a `Symbol` is defined.
 ttypeof(t)                   # Returns the type of an evaluated Token
 tisa(t)                      # Compares the specified type with the type of an evaluated Token
 ```

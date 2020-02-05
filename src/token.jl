@@ -147,7 +147,7 @@ julia> tevalfast(t)
 Int64
 ```
 """
-function tevalfast(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function tevalfast(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
     if check_isdefined && !(tisdefined(modul,pt))
         return UndefToken
@@ -170,8 +170,8 @@ julia> evalfast(:([5]))
 
 ```
 """
-evalfast(modul, x::Expr)= modul.eval(x)
-evalfast(modul, x::Symbol)= getfield(modul,x)
+evalfast(modul::Module, x::Expr)= modul.eval(x)
+evalfast(modul::Module, x::Symbol)= getfield(modul,x)
 evalfast(x::Expr)= Core.eval(@__MODULE__, x)
 evalfast(x::Symbol)= getfield(@__MODULE__,x)
 
@@ -194,7 +194,7 @@ julia> tgetfield(t)
 Int64
 ```
 """
-function tgetfield(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function tgetfield(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
     if check_isdefined && !(tisdefined(modul,pt))
         return UndefToken
@@ -223,7 +223,7 @@ julia> teval(t)
 Int64
 ```
 """
-function teval(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function teval(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
     if check_isdefined && !(tisdefined(modul,pt))
         return UndefToken
