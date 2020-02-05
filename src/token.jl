@@ -124,6 +124,8 @@ function tevalfast(modul, t::T, check_isdefined::Bool = false) where {T <: Union
     return evalfast(modul,pt)
 end
 
+tevalfast(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tevalfast(@__MODULE__, t, check_isdefined)
+
 """
     evalfast(x)
     evalfast(modul, x)
