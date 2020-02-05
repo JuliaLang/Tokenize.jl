@@ -99,6 +99,13 @@ exactkind(t::AbstractToken) = t.kind
 Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize(t))
 
 """
+    UndefToken
+
+An abstract type that shows if the an evaluated `Token` is defined.
+"""
+abstract type UndefToken end
+
+"""
     tisdefined(t)
     tisdefined(modul, t)
 
@@ -130,7 +137,7 @@ tisdefined(t::T) where {T <: Union{Symbol, Expr}} = isdefined(@__MODULE__, t)
 
 Parses and evaluates a `Token` that represents a `Symbol` or `Expr` in Julia. For `Symbol` It dispatches on the fast method based on the parsed Token.
 
-If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `UndefToken` instead of throwing an error.
 
 # Examples
 ```julia
@@ -142,8 +149,8 @@ Int64
 """
 function tevalfast(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if check_isdefined && !(isdefined(modul,pt))
-        return nothing
+    if check_isdefined && !(tisdefined(modul,pt))
+        return UndefToken
     end
     return evalfast(modul,pt)
 end
@@ -177,7 +184,7 @@ See [`tevalfast`](@ref) for fast Token evaluation.
 
 Parses and evaluates a Token that represents a `Symbol` in Julia. For `Symbol` it is similar to eval, but much faster.
 
-If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `UndefToken` instead of throwing an error.
 
 # Examples
 ```julia
@@ -189,8 +196,8 @@ Int64
 """
 function tgetfield(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if check_isdefined && !(isdefined(modul,pt))
-        return nothing
+    if check_isdefined && !(tisdefined(modul,pt))
+        return UndefToken
     end
     return getfield(modul,pt)
 end
@@ -206,7 +213,7 @@ See [`tevalfast`](@ref) for fast Token evaluation.
 
 Parses and evaluates a `Token`.
 
-If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `UndefToken` instead of throwing an error.
 
 # Examples
 ```julia
@@ -218,8 +225,8 @@ Int64
 """
 function teval(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if check_isdefined && !(isdefined(modul,pt))
-        return nothing
+    if check_isdefined && !(tisdefined(modul,pt))
+        return UndefToken
     end
     return Core.eval(modul, pt)
 end
@@ -231,7 +238,7 @@ teval(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}
 
 Returns the type of an evaluated Token
 
-If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `UndefToken` instead of throwing an error.
 
 # Examples
 ```julia
@@ -249,7 +256,7 @@ ttypeof(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Toke
 
 Compares the specified type with the type of an evaluated Token
 
-If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `UndefToken` instead of throwing an error.
 
 # Examples
 ```julia
