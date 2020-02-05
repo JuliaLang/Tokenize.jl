@@ -269,7 +269,7 @@ end
                     "type",
                     "using",
                     "while"]
-                    
+
         @test T.kind(tok(kw)) == T.KEYWORD
     end
 end
@@ -513,11 +513,11 @@ for op in ops
 end
 end
 
-@testset "perp" begin 
-    @test tok("1 ⟂ 2", 3).kind==T.PERP 
+@testset "perp" begin
+    @test tok("1 ⟂ 2", 3).kind==T.PERP
 end
 
-@testset "outer" begin 
+@testset "outer" begin
     @test tok("outer", 1).kind==T.OUTER
 end
 
@@ -537,23 +537,23 @@ end
     @test tok("1**2",2).token_error === Tokens.INVALID_OPERATOR
 end
 
-@testset "hat suffix" begin 
+@testset "hat suffix" begin
     @test tok("ŝ", 1).kind==Tokens.IDENTIFIER
     @test untokenize(collect(tokenize("ŝ", Tokens.RawToken))[1], "ŝ") == "ŝ"
 end
 
-@testset "suffixed op" begin 
+@testset "suffixed op" begin
     s = "+¹"
     @test Tokens.isoperator(tok(s, 1).kind)
     @test untokenize(collect(tokenize(s, Tokens.RawToken))[1], s) == s
 end
 
-@testset "invalid float juxt" begin 
+@testset "invalid float juxt" begin
     s = "1.+2"
     @test tok(s, 1).kind == Tokens.ERROR
-    @test Tokens.isoperator(tok(s, 2).kind) 
+    @test Tokens.isoperator(tok(s, 2).kind)
     @test (t->t.val=="1234."    && t.kind == Tokens.ERROR )(tok("1234.+1")) # requires space before '.'
-    @test tok("1.+ ").kind == Tokens.ERROR 
+    @test tok("1.+ ").kind == Tokens.ERROR
     @test tok("1.⤋").kind  == Tokens.ERROR
     @test tok("1.?").kind == Tokens.ERROR
 end

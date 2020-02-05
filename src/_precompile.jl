@@ -104,5 +104,5 @@ function _precompile_()
     precompile(Tokenize.Lexers.accept, (Tokenize.Lexers.Lexer{GenericIOBuffer{Array{UInt8, 1}},Tokenize.Tokens.RawToken}, Function,))
 
 
-    precompile(Tokenize.Lexers.readchar, (GenericIOBuffer{Array{UInt8, 1}},))    
+    precompile(Tokenize.Lexers.readchar, (GenericIOBuffer{Array{UInt8, 1}},))
 end

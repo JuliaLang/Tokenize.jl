@@ -53,7 +53,7 @@ function Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken}
             c3 = read(io, Char)
             p3 = position(io)
         end
-        
+
     end
     Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(), (c1,c2,c3), (p1,p2,p3), false, false)
 end
@@ -280,7 +280,7 @@ function emit(l::Lexer{IO_t,RawToken}, kind::Kind, err::TokenError = Tokens.NO_E
     tok = RawToken(kind, (l.token_start_row, l.token_start_col),
                   (l.current_row, l.current_col - 1),
                   startpos(l), position(l) - 1, err, l.dotop, suffix)
-    
+
     l.dotop = false
     l.last_token = kind
     readoff(l)
@@ -942,7 +942,7 @@ end
 
 # A ` has been consumed
 function lex_cmd(l::Lexer, doemit=true)
-    if accept(l, '`') # 
+    if accept(l, '`') #
         if accept(l, '`') # """
             if read_string(l, Tokens.TRIPLE_CMD)
                 return doemit ? emit(l, Tokens.TRIPLE_CMD) : EMPTY_TOKEN(token_type(l))
@@ -952,7 +952,7 @@ function lex_cmd(l::Lexer, doemit=true)
         else # empty cmd
             return doemit ? emit(l, Tokens.CMD) : EMPTY_TOKEN(token_type(l))
         end
-    else 
+    else
         if read_string(l, Tokens.CMD)
             return doemit ? emit(l, Tokens.CMD) : EMPTY_TOKEN(token_type(l))
         else

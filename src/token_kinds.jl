@@ -549,7 +549,7 @@
             DDOT, # ..
             LDOTS, # …
             TRICOLON, # ⁝
-            VDOTS, # ⋮ 
+            VDOTS, # ⋮
             DDOTS, # ⋱
             ADOTS, # ⋰
             CDOTS, # ⋯
@@ -1326,7 +1326,7 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '⋅' => UNICODE_DOT,
 '…' => LDOTS,
 '⁝' => TRICOLON,
-'⋮' => VDOTS, 
+'⋮' => VDOTS,
 '⋱' => DDOTS,
 '⋰' => ADOTS,
 '⋯' => CDOTS)

@@ -198,11 +198,11 @@ function untokenize(t::Token)
         return lowercase(string(t.kind))
     elseif isoperator(t.kind)
         if t.dotop
-            str = string(".", UNICODE_OPS_REVERSE[t.kind]) 
-        else 
-            str = string(UNICODE_OPS_REVERSE[t.kind]) 
-        end 
-        return string(str, t.val) 
+            str = string(".", UNICODE_OPS_REVERSE[t.kind])
+        else
+            str = string(UNICODE_OPS_REVERSE[t.kind])
+        end
+        return string(str, t.val)
     elseif t.kind == LPAREN
         return "("
     elseif t.kind == LSQUARE

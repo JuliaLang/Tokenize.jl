@@ -344,7 +344,7 @@ end
 
 
 function optakessuffix(k)
-    (Tokens.begin_ops < k < Tokens.end_ops) && 
+    (Tokens.begin_ops < k < Tokens.end_ops) &&
     !(k == Tokens.DDDOT ||
     Tokens.EQ <= k <= k == Tokens.XOR_EQ ||
     k == Tokens.CONDITIONAL ||
@@ -367,7 +367,7 @@ function optakessuffix(k)
     k == Tokens.TRANSPOSE ||
     k == Tokens.ANON_FUNC ||
     Tokens.NOT_SIGN <= k <= Tokens.QUAD_ROOT
-    ) 
+    )
 end
 
 function is_operator_start_char(c::Char)
