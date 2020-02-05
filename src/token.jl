@@ -99,6 +99,24 @@ exactkind(t::AbstractToken) = t.kind
 Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize(t))
 
 """
+    evalfast(x)
+    evalfast(Module, x)
+
+Evaluates x fast. Uses `getfield` if x is an Symbol, and uses `eval` if it is an `Expr`
+# Examples
+```julia
+julia> evalfast(:Int64)
+
+julia> evalfast(:([5]))
+
+```
+"""
+evalfast(Module, x::Expr)= Module.eval(x)
+evalfast(Module, x::Symbol)= getfield(Module,x)
+evalfast(x::Expr)= Core.eval(@__MODULE__, x)
+evalfast(x::Symbol)= getfield(@__MODULE__,x)
+
+"""
     tgetfield(t::T)
     tgetfield(t::T, checkIsdefined::Bool=false)
     tgetfield(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
