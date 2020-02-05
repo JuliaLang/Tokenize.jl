@@ -101,12 +101,12 @@ Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize
 
 """
     tevalfast(t::T)
-    tevalfast(t::T, checkIsdefined::Bool=false)
-    tevalfast(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
+    tevalfast(t::T, check_isdefined::Bool=false)
+    tevalfast(modul = @__MODULE__, t::T, check_isdefined::Bool=false)
 
-Parses and evaluates a Token that represents a `Symbol` or `Expr` in Julia. For `Symbol` It dispatches on the fast method based on the parsed Token.
+Parses and evaluates a `Token` that represents a `Symbol` or `Expr` in Julia. For `Symbol` It dispatches on the fast method based on the parsed Token.
 
-If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
 
 # Examples
 ```julia
@@ -116,19 +116,19 @@ julia> tevalfast(t)
 Int64
 ```
 """
-function tevalfast(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function tevalfast(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if checkIsdefined && !(isdefined(Module,pt))
-        return undef
+    if check_isdefined && !(isdefined(modul,pt))
+        return nothing
     end
-    return evalfast(Module,pt)
+    return evalfast(modul,pt)
 end
 
 """
     evalfast(x)
-    evalfast(Module, x)
+    evalfast(modul, x)
 
-Evaluates x fast. Uses `getfield` if x is an Symbol, and uses `eval` if it is an `Expr`
+Evaluates `x` fast. Uses `getfield` if `x` is a `Symbol`, and uses `eval` if it is an `Expr`
 # Examples
 ```julia
 julia> evalfast(:Int64)
@@ -137,21 +137,21 @@ julia> evalfast(:([5]))
 
 ```
 """
-evalfast(Module, x::Expr)= Module.eval(x)
-evalfast(Module, x::Symbol)= getfield(Module,x)
+evalfast(modul, x::Expr)= modul.eval(x)
+evalfast(modul, x::Symbol)= getfield(modul,x)
 evalfast(x::Expr)= Core.eval(@__MODULE__, x)
 evalfast(x::Symbol)= getfield(@__MODULE__,x)
 
 """
     tgetfield(t::T)
-    tgetfield(t::T, checkIsdefined::Bool=false)
-    tgetfield(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
+    tgetfield(t::T, check_isdefined::Bool=false)
+    tgetfield(modul = @__MODULE__, t::T, check_isdefined::Bool=false)
 
 See [`tevalfast`](@ref) for fast Token evaluation.
 
 Parses and evaluates a Token that represents a `Symbol` in Julia. For `Symbol` it is similar to eval, but much faster.
 
-If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
 
 # Examples
 ```julia
@@ -161,26 +161,26 @@ julia> tgetfield(t)
 Int64
 ```
 """
-function tgetfield(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function tgetfield(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if checkIsdefined && !(isdefined(Module,pt))
-        return undef
+    if check_isdefined && !(isdefined(modul,pt))
+        return nothing
     end
-    return getfield(Module,pt)
+    return getfield(modul,pt)
 end
 
-tgetfield(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tgetfield(@__MODULE__, t, checkIsdefined)
+tgetfield(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tgetfield(@__MODULE__, t, check_isdefined)
 
 """
-    teval(t::T, checkIsdefined::Bool=false)
-    teval(t::T, checkIsdefined::Bool=false)
-    teval(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
+    teval(t::T, check_isdefined::Bool=false)
+    teval(t::T, check_isdefined::Bool=false)
+    teval(modul = @__MODULE__, t::T, check_isdefined::Bool=false)
 
 See [`tevalfast`](@ref) for fast Token evaluation.
 
-Parses and evaluates a Token.
+Parses and evaluates a `Token`.
 
-If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
 
 # Examples
 ```julia
@@ -190,22 +190,22 @@ julia> teval(t)
 Int64
 ```
 """
-function teval(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function teval(modul, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
     pt = Meta.parse(t)
-    if checkIsdefined && !(isdefined(Module,pt))
-        return undef
+    if check_isdefined && !(isdefined(modul,pt))
+        return nothing
     end
-    return Core.eval(Module, pt)
+    return Core.eval(modul, pt)
 end
-teval(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = teval(@__MODULE__, t, checkIsdefined)
+teval(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = teval(@__MODULE__, t, check_isdefined)
 
 """
     ttypeof(t)
-    ttypeof(t::T, checkIsdefined::Bool = false)
+    ttypeof(t::T, check_isdefined::Bool = false)
 
 Returns the type of an evaluated Token
 
-If you set checkIsdefined to true, and t is not defined in the scope it returns undef.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
 
 # Examples
 ```julia
@@ -215,15 +215,15 @@ julia> ttypeof(t)
 DataType
 ```
 """
-ttypeof(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(tevalfast(t, checkIsdefined))
+ttypeof(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(tevalfast(t, check_isdefined))
 
 """
     tisa(t, T::Type)
-    tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false)
+    tisa(t::T, Tspecified::Type, check_isdefined::Bool = false)
 
 Compares the specified type with the type of an evaluated Token
 
-If you set checkIsdefined to true, and t is not defined in the scope it returns undef.
+If you set `check_isdefined` to `true`, and `t` is not defined in the scope it returns `nothing` instead of throwing an error.
 
 # Examples
 ```julia
@@ -233,7 +233,7 @@ julia> tisa(t, DataType)
 true
 ```
 """
-tisa(t::T, Tspecified::Type, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(tevalfast(t, checkIsdefined), Tspecified)
+tisa(t::T, Tspecified::Type, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(tevalfast(t, check_isdefined), Tspecified)
 
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
