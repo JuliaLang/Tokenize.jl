@@ -105,6 +105,8 @@ An abstract type that shows if the an evaluated `Token` is defined.
 """
 abstract type UndefToken end
 
+# Note: in the following, Symbol and Expr methods are meant for seemless and errorless experience.
+
 """
     tisdefined(t)
     tisdefined(modul, t)
@@ -119,12 +121,12 @@ julia> tisdefined(t)
 true
 ```
 """
-function tisdefined(modul, t::T) where {T <: Union{Token, Array{Token}}}
+function tisdefined(modul, t::T) where {T <: Union{Token, Array{Token}, String}}
     pt = Meta.parse(t)
     return isdefined(modul,pt)
 end
 
-tisdefined(t::T) where {T <: Union{Token, Array{Token}}} = tisdefined(@__MODULE__, t)
+tisdefined(t::T) where {T <: Union{Token, Array{Token}, String}} = tisdefined(@__MODULE__, t)
 
 tisdefined(modul, t::T) where {T <: Union{Symbol, Expr}} = isdefined(modul, t)
 tisdefined(t::T) where {T <: Union{Symbol, Expr}} = isdefined(@__MODULE__, t)
@@ -147,7 +149,7 @@ julia> tevalfast(t)
 Int64
 ```
 """
-function tevalfast(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function tevalfast(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}, String}}
     pt = Meta.parse(t)
     if check_isdefined && !(tisdefined(modul,pt))
         return UndefToken
@@ -155,7 +157,15 @@ function tevalfast(modul::Module, t::T, check_isdefined::Bool = false) where {T 
     return evalfast(modul,pt)
 end
 
-tevalfast(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tevalfast(@__MODULE__, t, check_isdefined)
+function tevalfast(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Symbol, Expr}}
+    if check_isdefined && !(tisdefined(modul,pt))
+        return UndefToken
+    end
+    return evalfast(modul,pt)
+end
+
+tevalfast(t::T, check_isdefined::Bool = false) where {T <: Union{Symbol, Array{Token}, String, Symbol, Expr}} = tevalfast(@__MODULE__, t, check_isdefined)
+
 
 """
     evalfast(x)
@@ -194,7 +204,7 @@ julia> tgetfield(t)
 Int64
 ```
 """
-function tgetfield(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function tgetfield(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}, String}}
     pt = Meta.parse(t)
     if check_isdefined && !(tisdefined(modul,pt))
         return UndefToken
@@ -202,7 +212,14 @@ function tgetfield(modul::Module, t::T, check_isdefined::Bool = false) where {T 
     return getfield(modul,pt)
 end
 
-tgetfield(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tgetfield(@__MODULE__, t, check_isdefined)
+function tgetfield(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Symbol, Expr}}
+    if check_isdefined && !(tisdefined(modul,pt))
+        return UndefToken
+    end
+    return getfield(modul,pt)
+end
+
+tgetfield(t::T, check_isdefined::Bool = false) where {T <: Union{Symbol, Array{Token}, String, Symbol, Expr}} = tgetfield(@__MODULE__, t, check_isdefined)
 
 """
     teval(t::T, check_isdefined::Bool=false)
@@ -223,14 +240,22 @@ julia> teval(t)
 Int64
 ```
 """
-function teval(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+function teval(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}, String}}
     pt = Meta.parse(t)
     if check_isdefined && !(tisdefined(modul,pt))
         return UndefToken
     end
     return Core.eval(modul, pt)
 end
-teval(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = teval(@__MODULE__, t, check_isdefined)
+
+function teval(modul::Module, t::T, check_isdefined::Bool = false) where {T <: Union{Symbol, Expr}}
+    if check_isdefined && !(tisdefined(modul,pt))
+        return UndefToken
+    end
+    return Core.eval(modul, pt)
+end
+
+teval(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}, String, Symbol, Expr}} = teval(@__MODULE__, t, check_isdefined)
 
 """
     ttypeof(t)
@@ -248,7 +273,7 @@ julia> ttypeof(t)
 DataType
 ```
 """
-ttypeof(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = typeof(tevalfast(t, check_isdefined))
+ttypeof(t::T, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}, String, Symbol, Expr}} = typeof(tevalfast(t, check_isdefined))
 
 """
     tisa(t, T::Type)
@@ -266,7 +291,7 @@ julia> tisa(t, DataType)
 true
 ```
 """
-tisa(t::T, Tspecified::Type, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = isa(tevalfast(t, check_isdefined), Tspecified)
+tisa(t::T, Tspecified::Type, check_isdefined::Bool = false) where {T <: Union{Token, Array{Token}, String, Symbol, Expr}} = isa(tevalfast(t, check_isdefined), Tspecified)
 
 startpos(t::AbstractToken) = t.startpos
 endpos(t::AbstractToken) = t.endpos
