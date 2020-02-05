@@ -101,6 +101,31 @@ Meta.parse(t::T) where {T <: Union{Token, Array{Token}}} = Meta.parse(untokenize
 """
     teval(t)
     teval(t, checkIsdefined::Bool=false)
+    tgetfield(t::T)
+    tgetfield(t::T, checkIsdefined::Bool=false)
+    tgetfield(Module = @__MODULE__, t::T, checkIsdefined::Bool=false)
+
+Parses and evaluates a Token (get an instance). Similar to eval, but much faster.
+
+If you set checkIsdefined to true, and t is not defined in the scope it returns undef instead of throwing an error.
+
+# Examples
+```julia
+julia> t = collect(tokenize("Int64"))
+
+julia> tgetfield(t)
+Int64
+```
+"""
+function tgetfield(Module, t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}}
+    pt = Meta.parse(t)
+    if checkIsdefined && !(isdefined(Module,pt))
+        return undef
+    end
+    return getfield(Module,pt)
+end
+
+tgetfield(t::T, checkIsdefined::Bool = false) where {T <: Union{Token, Array{Token}}} = tgetfield(@__MODULE__, t, checkIsdefined)
 
 Parses and evaluates a Token.
 
