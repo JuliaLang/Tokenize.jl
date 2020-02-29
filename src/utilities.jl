@@ -28,6 +28,17 @@ The JuliaParser.jl package is licensed under the MIT "Expat" License:
 
 import Base.Unicode
 
+function valid_char(c::Char)
+    u = reinterpret(UInt32, c)
+    u < 0x80000000 && return true
+    l1 = leading_ones(u)
+    t0 = trailing_zeros(u) & 56
+    (l1 == 1) | (8l1 + t0 > 32) |
+    ((((u & 0x00c0c0c0) ⊻ 0x00808080) >> t0 != 0) | Base.is_overlong_enc(u)) &&
+        return false
+    return true
+end
+
 
 @inline function utf8_trailing(i)
     if i < 193
@@ -56,6 +67,7 @@ const EOF_CHAR = typemax(Char)
 
 
 function is_cat_id_start(ch::Char, cat::Integer)
+    !valid_char(ch) && return false
     c = UInt32(ch)
     return (cat == Unicode.UTF8PROC_CATEGORY_LU || cat == Unicode.UTF8PROC_CATEGORY_LL ||
             cat == Unicode.UTF8PROC_CATEGORY_LT || cat == Unicode.UTF8PROC_CATEGORY_LM ||
@@ -110,11 +122,13 @@ end
 
 function is_identifier_char(c::Char)
     c == EOF_CHAR && return false
+    !valid_char(c) && return false
+    u = UInt32(c)
     if ((c >= 'A' && c <= 'Z') ||
         (c >= 'a' && c <= 'z') || c == '_' ||
         (c >= '0' && c <= '9') || c == '!')
         return true
-    elseif (UInt32(c) < 0xA1 || UInt32(c) > 0x10ffff)
+    elseif (u < 0xA1 || u > 0x10ffff)
         return false
     end
     cat = Unicode.category_code(c)
@@ -123,9 +137,9 @@ function is_identifier_char(c::Char)
         cat == Unicode.UTF8PROC_CATEGORY_ND || cat == Unicode.UTF8PROC_CATEGORY_PC ||
         cat == Unicode.UTF8PROC_CATEGORY_SK || cat == Unicode.UTF8PROC_CATEGORY_ME ||
         cat == Unicode.UTF8PROC_CATEGORY_NO ||
-        (0x2032 <= UInt32(c) <= 0x2034) || # primes
-        UInt32(c) == 0x0387 || UInt32(c) == 0x19da ||
-        (0x1369 <= UInt32(c) <= 0x1371)
+        (0x2032 <= u <= 0x2034) || # primes
+        u == 0x0387 || u == 0x19da ||
+        (0x1369 <= u <= 0x1371)
        return true
     end
     return false
@@ -133,9 +147,11 @@ end
 
 function is_identifier_start_char(c::Char)
     c == EOF_CHAR && return false
+    !valid_char(c) && return false
+    u = UInt32(c)
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
         return true
-    elseif (UInt32(c) < 0xA1 || UInt32(c) > 0x10ffff)
+    elseif (u < 0xA1 || u > 0x10ffff)
         return false
     end
     cat = Unicode.category_code(c)
@@ -204,6 +220,7 @@ takechar(io::IO) = (readchar(io); io)
 # `a .(op) b` or `.(op)a` and where `length(string(op)) == 1`
 @inline function dotop1(c1::Char)
     c1 == EOF_CHAR && return false
+    !valid_char(c1) && return false
     c = UInt32(c1)
     c == 0x00000021 ||
     c == 0x0000002e ||
