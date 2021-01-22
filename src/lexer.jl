@@ -677,7 +677,7 @@ function lex_digit(l::Lexer, kind)
         kind == Tokens.INTEGER
         if pc == 'x'
             kind = Tokens.HEX_INT
-            isdecimal = false
+            isfloat = false
             readchar(l)
             !(ishex(ppc) || ppc =='.') && return emit_error(l, Tokens.INVALID_NUMERIC_CONSTANT)
             accept_number(l, ishex)
