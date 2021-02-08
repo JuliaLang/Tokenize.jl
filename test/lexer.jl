@@ -582,3 +582,7 @@ end
     s = ".0."
     @test collect(tokenize(s, Tokens.RawToken))[1].kind == Tokens.ERROR
 end
+
+@testset "allow prime after end" begin
+    @test tok("begin end'", 4).kind === Tokens.PRIME
+end
