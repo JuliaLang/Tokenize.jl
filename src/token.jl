@@ -49,7 +49,7 @@ TOKEN_ERROR_DESCRIPTION = Dict{TokenError, String}(
 abstract type AbstractToken end
 
 """
-Each `Token` is represented by where it starts and ends, what string it contains and what type it is.
+Each [`Token`](@ref) is represented by where it starts and ends, what string it contains and what type it is.
 """
 struct Token <: AbstractToken
     kind::Kind
