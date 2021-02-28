@@ -5,6 +5,7 @@ Documentation for Tokenize.jl
 ```@autodocs
 Modules = [
     Tokenize,
-    Tokenize.Lexers
+    Tokenize.Lexers,
+    Tokenize.Tokens,
 ]
 ```
