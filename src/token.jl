@@ -70,7 +70,7 @@ end
 Token() = Token(ERROR, (0,0), (0,0), 0, 0, "", UNKNOWN, false, false)
 
 """
-Like [`Tokens.Token`](@ref), but without the `val` field.
+Like [`Token`](@ref), but without the `val` field.
 """
 struct RawToken <: AbstractToken
     kind::Kind

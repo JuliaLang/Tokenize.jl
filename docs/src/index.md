@@ -6,6 +6,15 @@ Documentation for Tokenize.jl
 Modules = [
     Tokenize,
     Tokenize.Lexers,
-    Tokenize.Tokens,
+]
+```
+
+```@meta
+CurrentModule = Tokenize.Tokens
+```
+
+```@autodocs
+Modules = [
+    Tokens,
 ]
 ```
