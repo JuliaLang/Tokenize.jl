@@ -4,7 +4,10 @@ using Tokenize
 makedocs(
     sitename = "Tokenize",
     format = Documenter.HTML(),
-    modules = [Tokenize]
+    modules = [Tokenize],
+    pages=[
+        "Home" => "index.md",
+    ],
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
