@@ -1028,7 +1028,7 @@ function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
         readon(l)
     end
     cnt = 1
-    h = simple_hash(Int(c), cnt, 0)
+    h = simple_hash(Int(c), cnt, 1)
     while true
         pc, ppc = dpeekchar(l)
         if !is_identifier_char(pc) || (pc == '!' && ppc == '=')
@@ -1049,7 +1049,7 @@ end
 function simple_hash(str)
     ind = 1
     cnt = 1
-    h = 0
+    h = 1
     while ind <= length(str)
         h = simple_hash(Int(str[ind]), cnt, h)
         cnt += 1
@@ -1083,7 +1083,6 @@ Tokens.LOCAL,
 Tokens.MACRO,
 Tokens.MODULE,
 Tokens.MUTABLE,
-Tokens.NEW,
 Tokens.OUTER,
 Tokens.PRIMITIVE,
 Tokens.QUOTE,
