@@ -224,7 +224,6 @@ function readon(l::Lexer{I,Token}) where {I <: IO}
     end
     write(l.charstore, l.chars[1])
     l.doread = true
-    return l.chars[1]
 end
 
 readoff(l::Lexer{I,RawToken}) where {I <: IO} = l.chars[1]
@@ -336,7 +335,6 @@ function next_token(l::Lexer, start = true)
     if eof(c)
         return emit(l, Tokens.ENDMARKER)
     elseif iswhitespace(c)
-        readon(l)
         return lex_whitespace(l)
     elseif c == '['
         return emit(l, Tokens.LSQUARE)
@@ -369,7 +367,6 @@ function next_token(l::Lexer, start = true)
     elseif c == '~'
         return emit(l, Tokens.APPROX)
     elseif c == '#'
-        readon(l)
         return lex_comment(l)
     elseif c == '='
         return lex_equal(l)
@@ -390,7 +387,6 @@ function next_token(l::Lexer, start = true)
     elseif c == '÷'
         return lex_division(l)
     elseif c == '"'
-        readon(l)
         return lex_quote(l);
     elseif c == '%'
         return lex_percent(l);
@@ -405,12 +401,10 @@ function next_token(l::Lexer, start = true)
     elseif c == '-'
         return lex_minus(l);
     elseif c == '`'
-        readon(l)
         return lex_cmd(l);
     elseif is_identifier_start_char(c)
         return lex_identifier(l, c)
     elseif isdigit(c)
-        readon(l)
         return lex_digit(l, Tokens.INTEGER)
     elseif (k = get(UNICODE_OPS, c, Tokens.ERROR)) != Tokens.ERROR
         return emit(l, k)
@@ -427,6 +421,7 @@ function lex_whitespace(l::Lexer)
 end
 
 function lex_comment(l::Lexer, doemit=true)
+    readon(l)
     if peekchar(l) != '='
         while true
             pc = peekchar(l)
@@ -642,6 +637,7 @@ end
 
 # A digit has been consumed
 function lex_digit(l::Lexer, kind)
+    readon(l)
     accept_number(l, isdigit)
     pc,ppc = dpeekchar(l)
     if pc == '.'
@@ -795,6 +791,7 @@ end
 # Parse a token starting with a quote.
 # A '"' has been consumed
 function lex_quote(l::Lexer, doemit=true)
+    readon(l)
     if accept(l, '"') # ""
         if accept(l, '"') # """
             if read_string(l, Tokens.TRIPLE_STRING)
@@ -907,7 +904,6 @@ function lex_dot(l::Lexer)
             return emit(l, Tokens.DDOT)
         end
     elseif Base.isdigit(peekchar(l))
-        readon(l)
         return lex_digit(l, Tokens.FLOAT)
     else
         pc, dpc = dpeekchar(l)
@@ -1004,6 +1000,7 @@ end
 
 # A ` has been consumed
 function lex_cmd(l::Lexer, doemit=true)
+    readon(l)
     if accept(l, '`') #
         if accept(l, '`') # """
             if read_string(l, Tokens.TRIPLE_CMD)
