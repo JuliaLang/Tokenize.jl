@@ -460,80 +460,63 @@ end
 
 # Lex a greater char, a '>' has been consumed
 function lex_greater(l::Lexer)
-    pc, ppc = dpeekchar(l)
-    if pc === '>' && ppc === '>'
-        readchar(l)
-        readchar(l)
-        if peekchar(l) === '='
-            readchar(l)
-            emit(l, Tokens.UNSIGNED_BITSHIFT_EQ)
-        else
-            emit(l, Tokens.UNSIGNED_BITSHIFT)
+    if accept(l, '>') # >>
+        if accept(l, '>') # >>>
+            if accept(l, '=') # >>>=
+                return emit(l, Tokens.UNSIGNED_BITSHIFT_EQ)
+            else # >>>?, ? not a =
+                return emit(l, Tokens.UNSIGNED_BITSHIFT)
+            end
+        elseif accept(l, '=') # >>=
+            return emit(l, Tokens.RBITSHIFT_EQ)
+        else # '>>'
+            return emit(l, Tokens.RBITSHIFT)
         end
-    elseif pc === '>' && ppc === '='
-        readchar(l)
-        readchar(l)
-        emit(l, Tokens.RBITSHIFT_EQ)
-    elseif pc === '>'
-        readchar(l)
-        emit(l, Tokens.RBITSHIFT)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.GREATER_EQ)
-    elseif pc === ':'
-        readchar(l)
-        emit(l, Tokens.ISSUPERTYPE)
-    else
-        emit(l, Tokens.GREATER)
+    elseif accept(l, '=') # >=
+        return emit(l, Tokens.GREATER_EQ)
+    elseif accept(l, ':') # >:
+        return emit(l, Tokens.ISSUPERTYPE)
+    else  # '>'
+        return emit(l, Tokens.GREATER)
     end
 end
 
 # Lex a less char, a '<' has been consumed
 function lex_less(l::Lexer)
-    pc, ppc = dpeekchar(l)
-    if pc === '<' && ppc === '='
-        readchar(l)
-        readchar(l)
-        emit(l, Tokens.LBITSHIFT_EQ)
-    elseif pc === '<'
-        readchar(l)
-        emit(l, Tokens.LBITSHIFT)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.LESS_EQ)
-    elseif pc === ':'
-        readchar(l)
-        emit(l, Tokens.ISSUBTYPE)
-    elseif pc === '|'
-        readchar(l)
-        emit(l, Tokens.LPIPE)
-    elseif pc === '-' && ppc === '-'
-        readchar(l)
-        readchar(l)
-        if peekchar(l) === '>'
-            readchar(l)
-            emit(l, Tokens.DOUBLE_ARROW)
+    if accept(l, '<') # <<
+        if accept(l, '=') # <<=
+            return emit(l, Tokens.LBITSHIFT_EQ)
+        else # '<<?', ? not =, ' '
+            return emit(l, Tokens.LBITSHIFT)
+        end
+    elseif accept(l, '=') # <=
+        return emit(l, Tokens.LESS_EQ)
+    elseif accept(l, ':')
+        return emit(l, Tokens.ISSUBTYPE)
+    elseif accept(l, '|') # <|
+        return emit(l, Tokens.LPIPE)
+    elseif dpeekchar(l) == ('-', '-') # <-- or <-->
+        readchar(l); readchar(l)
+        if accept(l, '>')
+            return emit(l, Tokens.DOUBLE_ARROW)
         else
-            emit(l, Tokens.LEFT_ARROW)
+            return emit(l, Tokens.LEFT_ARROW)
         end
     else
-        emit(l, Tokens.LESS) # '<'
+        return emit(l, Tokens.LESS) # '<'
     end
 end
 
 # Lex all tokens that start with an = character.
 # An '=' char has been consumed
 function lex_equal(l::Lexer)
-    pc, ppc = dpeekchar(l)
-    if pc === '=' && ppc === '='
-        readchar(l)
-        readchar(l)
-        emit(l, Tokens.EQEQEQ)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.EQEQ)
-    elseif pc === '>'
-        readchar(l)
+    if accept(l, '=') # ==
+        if accept(l, '=') # ===
+            emit(l, Tokens.EQEQEQ)
+        else
+            emit(l, Tokens.EQEQ)
+        end
+    elseif accept(l, '>') # =>
         emit(l, Tokens.PAIR_ARROW)
     else
         emit(l, Tokens.EQ)
@@ -542,106 +525,78 @@ end
 
 # Lex a colon, a ':' has been consumed
 function lex_colon(l::Lexer)
-    pc = peekchar(l)
-    if pc === ':'
-        readchar(l)
-        emit(l, Tokens.DECLARATION)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.COLON_EQ)
+    if accept(l, ':') # '::'
+        return emit(l, Tokens.DECLARATION)
+    elseif accept(l, '=') # ':='
+        return emit(l, Tokens.COLON_EQ)
     else
-        emit(l, Tokens.COLON)
+        return emit(l, Tokens.COLON)
     end
 end
 
 function lex_exclaim(l::Lexer)
-    pc, ppc = dpeekchar(l)
-    if pc === '=' && ppc === '='
-        readchar(l)
-        readchar(l)
-        emit(l, Tokens.NOT_IS)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.NOT_EQ)
+    if accept(l, '=') # !=
+        if accept(l, '=') # !==
+            return emit(l, Tokens.NOT_IS)
+        else # !=
+            return emit(l, Tokens.NOT_EQ)
+        end
     else
-        emit(l, Tokens.NOT)
+        return emit(l, Tokens.NOT)
     end
 end
 
 function lex_percent(l::Lexer)
-    if peekchar(l) === '='
-        readchar(l)
-        emit(l, Tokens.REM_EQ)
+    if accept(l, '=')
+        return emit(l, Tokens.REM_EQ)
     else
-        emit(l, Tokens.REM)
+        return emit(l, Tokens.REM)
     end
-    # if accept(l, '=')
-    #     return emit(l, Tokens.REM_EQ)
-    # else
-    #     return emit(l, Tokens.REM)
-    # end
 end
 
 function lex_bar(l::Lexer)
-    pc = peekchar(l)
-    if pc === '='
-        readchar(l)
-        emit(l, Tokens.OR_EQ)
-    elseif pc === '>'
-        readchar(l)
-        emit(l, Tokens.RPIPE)
-    elseif pc === '|'
-        readchar(l)
-        emit(l, Tokens.LAZY_OR)
+    if accept(l, '=') # |=
+        return emit(l, Tokens.OR_EQ)
+    elseif accept(l, '>') # |>
+        return emit(l, Tokens.RPIPE)
+    elseif accept(l, '|') # ||
+        return emit(l, Tokens.LAZY_OR)
     else
-        emit(l, Tokens.OR)
+        emit(l, Tokens.OR) # '|'
     end
 end
 
 function lex_plus(l::Lexer)
-    pc = peekchar(l)
-    if pc === '+'
-        readchar(l)
-        emit(l, Tokens.PLUSPLUS)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.PLUS_EQ)
-    else
-        emit(l, Tokens.PLUS)
+    if accept(l, '+')
+        return emit(l, Tokens.PLUSPLUS)
+    elseif accept(l, '=')
+        return emit(l, Tokens.PLUS_EQ)
     end
+    return emit(l, Tokens.PLUS)
 end
 
 function lex_minus(l::Lexer)
-    pc, ppc = dpeekchar(l)
-    if pc === '-' && ppc === '>'
-        readchar(l)
-        readchar(l)
-        emit(l, Tokens.RIGHT_ARROW)
-    elseif pc === '-'
-        readchar(l)
-        emit_error(l, Tokens.INVALID_OPERATOR) # "--" is an invalid operator
-    elseif pc === '>'
-        readchar(l)
-        emit(l, Tokens.ANON_FUNC)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.MINUS_EQ)
-    else
-        emit(l, Tokens.MINUS)
+    if accept(l, '-')
+        if accept(l, '>')
+            return emit(l, Tokens.RIGHT_ARROW)
+        else
+            return emit_error(l, Tokens.INVALID_OPERATOR) # "--" is an invalid operator
+        end
+    elseif accept(l, '>')
+        return emit(l, Tokens.ANON_FUNC)
+    elseif accept(l, '=')
+        return emit(l, Tokens.MINUS_EQ)
     end
+    return emit(l, Tokens.MINUS)
 end
 
 function lex_star(l::Lexer)
-    pc = peekchar(l)
-    if pc === '*'
-        readchar(l)
-        emit_error(l, Tokens.INVALID_OPERATOR)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.STAR_EQ)
-    else
-        emit(l, Tokens.STAR)
+    if accept(l, '*')
+        return emit_error(l, Tokens.INVALID_OPERATOR) # "**" is an invalid operator use ^
+    elseif accept(l, '=')
+        return emit(l, Tokens.STAR_EQ)
     end
+    return emit(l, Tokens.STAR)
 end
 
 function lex_circumflex(l::Lexer)
@@ -828,15 +783,12 @@ function lex_prime(l, doemit = true)
 end
 
 function lex_amper(l::Lexer)
-    pc = peekchar(l)
-    if pc === '&'
-        readchar(l)
-        emit(l, Tokens.LAZY_AND)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.AND_EQ)
+    if accept(l, '&')
+        return emit(l, Tokens.LAZY_AND)
+    elseif accept(l, "=")
+        return emit(l, Tokens.AND_EQ)
     else
-        emit(l, Tokens.AND)
+        return emit(l, Tokens.AND)
     end
 end
 
@@ -926,19 +878,16 @@ end
 # Parse a token starting with a forward slash.
 # A '/' has been consumed
 function lex_forwardslash(l::Lexer)
-    pc, ppc = dpeekchar(l)
-    if pc === '/' && ppc === '='
-        readchar(l)
-        readchar(l)
-        emit(l, Tokens.FWDFWD_SLASH_EQ)
-    elseif pc === '/'
-        readchar(l)
-        emit(l, Tokens.FWDFWD_SLASH)
-    elseif pc === '='
-        readchar(l)
-        emit(l, Tokens.FWD_SLASH_EQ)
+    if accept(l, "/") # //
+        if accept(l, "=") # //=
+            return emit(l, Tokens.FWDFWD_SLASH_EQ)
+        else
+            return emit(l, Tokens.FWDFWD_SLASH)
+        end
+    elseif accept(l, "=") # /=
+        return emit(l, Tokens.FWD_SLASH_EQ)
     else
-        emit(l, Tokens.FWD_SLASH)
+        return emit(l, Tokens.FWD_SLASH)
     end
 end
 
