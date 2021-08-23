@@ -416,6 +416,7 @@ end
 
 # Lex whitespace, a whitespace char has been consumed
 function lex_whitespace(l::Lexer)
+    readon(l)
     accept_batch(l, iswhitespace)
     return emit(l, Tokens.WHITESPACE)
 end
