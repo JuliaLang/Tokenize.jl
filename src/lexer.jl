@@ -1026,7 +1026,7 @@ function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
         readon(l)
     end
     cnt = 1
-    h = simple_hash(Int(c), cnt, 1)
+    h = simple_hash(Int(c), cnt, 0)
     while true
         pc, ppc = dpeekchar(l)
         if !is_identifier_char(pc) || (pc == '!' && ppc == '=')
