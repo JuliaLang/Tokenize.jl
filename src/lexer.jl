@@ -1025,36 +1025,37 @@ function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
     if T == Token
         readon(l)
     end
-    cnt = 1
-    h = simple_hash(Int(c), cnt, 0)
+    h = simple_hash(c, 0)
     while true
         pc, ppc = dpeekchar(l)
         if !is_identifier_char(pc) || (pc == '!' && ppc == '=')
             break
         end
         c = readchar(l)
-        cnt += 1
-        h = simple_hash(Int(c), cnt, h)
+        h = simple_hash(c, h)
     end
 
     return emit(l, get(kw_hash, h, IDENTIFIER))
 end
 
-function simple_hash(c, cnt, h)
+# This creates a hash using 5 bit per lower case ASCII char.
+# It checks its input to be between 'a' and 'z' (because only those chars)
+# are valid in keywords, and returns a sentinel value for invalid inputs
+# or when the hash is about to overflow.
+function simple_hash(c, h)
+    h == UInt64(0xff) && return h
     # only 'a' - 'z' actually need to be hashed
-    97 <= c <= 122 || return 0
-    # catch possible overflow (no kw is longer than 10 chars atm)
-    cnt > 18 && return 0
-    h + (c - 96)*Int128(100)^(cnt - 1)
+    'a' <= c <= 'z' || return UInt64(0xff)
+    # catch possible overflow by checking the 10 high bits
+    (h & (UInt64(0x3ff) << (64 - 10))) > 0 && return UInt64(0xff)
+    UInt64(h) << 5 + UInt8(c - 'a' + 1)
 end
 
 function simple_hash(str)
     ind = 1
-    cnt = 1
     h = 0
     while ind <= length(str)
-        h = simple_hash(Int(str[ind]), cnt, h)
-        cnt += 1
+        h = simple_hash(str[ind], h)
         ind = nextind(str, ind)
     end
     h
