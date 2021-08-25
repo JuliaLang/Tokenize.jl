@@ -1045,7 +1045,7 @@ function simple_hash(c, cnt, h)
     97 <= c <= 122 || return 0
     # catch possible overflow (no kw is longer than 10 chars atm)
     cnt > 18 && return 0
-    h + (c - 97)*Int128(100)^(cnt - 1)
+    h + (c - 96)*Int128(100)^(cnt - 1)
 end
 
 function simple_hash(str)
