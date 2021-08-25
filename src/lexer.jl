@@ -1041,13 +1041,17 @@ function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
 end
 
 function simple_hash(c, cnt, h)
-    h = h*c + c + cnt
+    # only 'a' - 'z' actually need to be hashed
+    97 <= c <= 122 || return 0
+    # catch possible overflow (no kw is longer than 10 chars atm)
+    cnt > 18 && return 0
+    h + (c - 97)*Int128(100)^(cnt - 1)
 end
 
 function simple_hash(str)
     ind = 1
     cnt = 1
-    h = 1
+    h = 0
     while ind <= length(str)
         h = simple_hash(Int(str[ind]), cnt, h)
         cnt += 1
