@@ -1028,9 +1028,10 @@ function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
     end
 end
 
-# This creates a hash for chars in [a-z] using 5 bit per char.
-# Requires an additional input-length check somewhere, because
-# this only works up to ~12 chars.
+# A perfect hash for lowercase ascii words less than 13 characters. We use this
+# to uniquely distinguish keywords; the hash for a keyword must be distinct
+# from the hash of any other possible identifier. Needs an additional length
+# check for words longer than the longest keyword.
 @inline function simple_hash(c::Char, h::UInt64)
     bytehash = (clamp(c - 'a' + 1, -1, 30) % UInt8) & 0x1f
     h << 5 + bytehash
