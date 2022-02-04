@@ -28,30 +28,6 @@ The JuliaParser.jl package is licensed under the MIT "Expat" License:
 
 import Base.Unicode
 
-
-@inline function utf8_trailing(i)
-    if i < 193
-        return 0
-    elseif i < 225
-        return 1
-    elseif i < 241
-        return 2
-    elseif i < 249
-        return 3
-    elseif i < 253
-        return 4
-    else
-        return 5
-    end
-end
-
-const utf8_offset = [0x00000000
-                    0x00003080
-                    0x000e2080
-                    0x03c82080
-                    0xfa082080
-                    0x82082080]
-# const EOF_CHAR = convert(Char,typemax(UInt32))
 const EOF_CHAR = typemax(Char)
 
 eof(io::IO) = Base.eof(io)
