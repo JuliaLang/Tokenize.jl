@@ -323,6 +323,10 @@ function emit_error(l::Lexer, err::TokenError = Tokens.UNKNOWN)
     return emit(l, Tokens.ERROR, err)
 end
 
+function is_identifier_start_char(c::Char)
+    c == EOF_CHAR && return false
+    return Base.is_id_start_char(c)
+end
 
 """
     next_token(l::Lexer)
@@ -1021,6 +1025,10 @@ function lex_cmd(l::Lexer, doemit=true)
     end
 end
 
+function is_identifier_char(c::Char)
+    c == EOF_CHAR && return false
+    return Base.is_id_char(c)
+end
 function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
     if T == Token
         readon(l)
