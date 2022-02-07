@@ -1475,5 +1475,12 @@ UNICODE_OPS_REVERSE[DDDOT] = :(...)
 UNICODE_OPS_REVERSE[TRANSPOSE] = Symbol(".'")
 UNICODE_OPS_REVERSE[ANON_FUNC] = :(->)
 UNICODE_OPS_REVERSE[WHERE] = :where
-UNICODE_OPS_REVERSE[LEFT_ARROW] = :(<--)
-UNICODE_OPS_REVERSE[DOUBLE_ARROW] = :(<-->)
+if VERSION >= v"1.6"
+    str = """
+    begin
+    UNICODE_OPS_REVERSE[LEFT_ARROW] = :(<--)
+    UNICODE_OPS_REVERSE[DOUBLE_ARROW] = :(<-->)
+    end
+    """
+    eval(Meta.parse(str))
+end
