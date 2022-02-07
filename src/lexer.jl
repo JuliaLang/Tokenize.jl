@@ -65,28 +65,6 @@ function Lexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: AbstractToken}
 end
 Lexer(str::AbstractString, T::Type{TT} = Token) where TT <: AbstractToken = Lexer(IOBuffer(str), T)
 
-function Base.copy(l::Lexer{IO_t, TT}) where IO_t where TT
-    return Lexer{IO_t, TT}(
-        l.io,
-        l.io_startpos,
-
-        l.token_start_row,
-        l.token_start_col,
-        l.token_startpos,
-
-        l.current_row,
-        l.current_col,
-        l.current_pos,
-
-        l.last_token,
-        IOBuffer(),
-        l.chars,
-        l.charspos,
-        l.doread,
-        l.dotop
-    )
-end
-
 @inline token_type(l::Lexer{IO_t, TT}) where {IO_t, TT} = TT
 
 """
@@ -272,10 +250,10 @@ Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
 """
 function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
     suffix = false
-    if (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
-        str = String(take!(l.charstore))
-    elseif kind == Tokens.ERROR
+    if kind in (Tokens.ERROR, Tokens.STRING, Tokens.TRIPLE_STRING, Tokens.CMD, Tokens.TRIPLE_CMD)
         str = String(l.io.data[(l.token_startpos + 1):position(l)])
+    elseif (kind == Tokens.IDENTIFIER || isliteral(kind) || kind == Tokens.COMMENT || kind == Tokens.WHITESPACE)
+        str = String(take!(l.charstore))
     elseif optakessuffix(kind)
         str = ""
         while isopsuffix(peekchar(l))
@@ -718,7 +696,7 @@ function lex_digit(l::Lexer, kind)
             kind = Tokens.HEX_INT
             isfloat = false
             readchar(l)
-            !(ishex(ppc) || ppc =='.') && return emit_error(l, Tokens.INVALID_NUMERIC_CONSTANT)
+            !(ishex(ppc) || ppc == '.') && return emit_error(l, Tokens.INVALID_NUMERIC_CONSTANT)
             accept_number(l, ishex)
             if accept(l, '.')
                 accept_number(l, ishex)
@@ -854,17 +832,18 @@ function read_string(l::Lexer, kind::Tokens.Kind)
                 return false
             elseif c == '('
                 o = 1
-                l2 = copy(l)
+                last_token = l.last_token
+                token_start_row = l.token_start_row
+                token_start_col = l.token_start_col
+                token_startpos = l.token_startpos
                 while o > 0
-                    prevpos_io = position(l2.io)
-                    t = next_token(l2)
-                    seek(l.io, prevpos_io)
-
-                    while position(l) < position(l2)
-                        readchar(l)
-                    end
+                    t = next_token(l)
 
                     if Tokens.kind(t) == Tokens.ENDMARKER
+                        l.last_token = last_token
+                        l.token_start_row = token_start_row
+                        l.token_start_col = token_start_col
+                        l.token_startpos = token_startpos
                         return false
                     elseif Tokens.kind(t) == Tokens.LPAREN
                         o += 1
@@ -872,6 +851,10 @@ function read_string(l::Lexer, kind::Tokens.Kind)
                         o -= 1
                     end
                 end
+                l.last_token = last_token
+                l.token_start_row = token_start_row
+                l.token_start_col = token_start_col
+                l.token_startpos = token_startpos
             end
         end
     end
@@ -1029,39 +1012,44 @@ function is_identifier_char(c::Char)
     c == EOF_CHAR && return false
     return Base.is_id_char(c)
 end
+            
+const MAX_KW_LENGTH = 10
+
 function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
     if T == Token
         readon(l)
     end
-    h = simple_hash(c, 0)
+    h = simple_hash(c, UInt64(0))
+    n = 1
     while true
         pc, ppc = dpeekchar(l)
-        if !is_identifier_char(pc) || (pc == '!' && ppc == '=')
+        if (pc == '!' && ppc == '=') || !is_identifier_char(pc)
             break
         end
         c = readchar(l)
         h = simple_hash(c, h)
+        n += 1
     end
 
-    return emit(l, get(kw_hash, h, IDENTIFIER))
+    if n > MAX_KW_LENGTH
+        emit(l, IDENTIFIER)
+    else
+        emit(l, get(kw_hash, h, IDENTIFIER))
+    end
 end
 
-# This creates a hash using 5 bit per lower case ASCII char.
-# It checks its input to be between 'a' and 'z' (because only those chars)
-# are valid in keywords, and returns a sentinel value for invalid inputs
-# or when the hash is about to overflow.
-function simple_hash(c, h)
-    h == UInt64(0xff) && return h
-    # only 'a' - 'z' actually need to be hashed
-    'a' <= c <= 'z' || return UInt64(0xff)
-    # catch possible overflow by checking the 10 high bits
-    (h & (UInt64(0x3ff) << (64 - 10))) > 0 && return UInt64(0xff)
-    UInt64(h) << 5 + UInt8(c - 'a' + 1)
+# A perfect hash for lowercase ascii words less than 13 characters. We use this
+# to uniquely distinguish keywords; the hash for a keyword must be distinct
+# from the hash of any other possible identifier. Needs an additional length
+# check for words longer than the longest keyword.
+@inline function simple_hash(c::Char, h::UInt64)
+    bytehash = (clamp(c - 'a' + 1, -1, 30) % UInt8) & 0x1f
+    h << 5 + bytehash
 end
 
 function simple_hash(str)
     ind = 1
-    h = 0
+    h = UInt64(0)
     while ind <= length(str)
         h = simple_hash(str[ind], h)
         ind = nextind(str, ind)
