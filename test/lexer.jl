@@ -166,8 +166,13 @@ end
     @test tok("1 in 2",  3).kind == T.IN
     @test tok("1 in[1]", 3).kind == T.IN
 
-    @test tok("1 isa 2",  3).kind == T.ISA
-    @test tok("1 isa[2]", 3).kind == T.ISA
+    if VERSION >= v"0.6.0-dev.1471"
+        @test tok("1 isa 2",  3).kind == T.ISA
+        @test tok("1 isa[2]", 3).kind == T.ISA
+    else
+        @test tok("1 isa 2",  3).kind == T.IDENTIFIER
+        @test tok("1 isa[2]", 3).kind == T.IDENTIFIER
+    end
 end
 
 @testset "tokenizing true/false literals" begin
@@ -606,7 +611,9 @@ end
         raw"::"
         raw"."
     ]
-    push!(ops, raw"<-- <-->")
+    if VERSION >= v"1.6.0"
+        push!(ops, raw"<-- <-->")
+    end
     allops = split(join(ops, " "), " ")
     @test all(s->Base.isoperator(Symbol(s)) == Tokens.isoperator(first(collect(tokenize(s))).kind), allops)
 end

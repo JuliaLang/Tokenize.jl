@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.6'
+          - '1.0'
           - '1'
           - 'nightly'
         os:
@@ -46,3 +46,4 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           file: lcov.info
+
