@@ -668,3 +668,15 @@ end
         end
     end
 end
+
+@testset "UTF-8 BOM" begin
+    @test Tokenize.Tokens.kind.(collect(tokenize("\ufeff[1\ufeff2]"))) == [
+        Tokens.WHITESPACE,
+        Tokens.LSQUARE,
+        Tokens.INTEGER,
+        Tokens.WHITESPACE,
+        Tokens.INTEGER,
+        Tokens.RSQUARE,
+        Tokens.ENDMARKER
+    ]
+end
