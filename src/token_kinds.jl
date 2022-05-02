@@ -568,6 +568,8 @@
             RIGHT_TACK, # ⊢
             LEFT_TACK, # ⊣
             PERP, # ⟂
+            TOP, # ⫪
+            BOT # ⫫
         end_comparison,
 
         # Level 7
@@ -1399,7 +1401,9 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '↺' => CIRCLE_ARROW_LEFT,
 '¦' => BROKEN_BAR,
 '⌿' => NOT_SLASH,
-'⨟' => BB_SEMI)
+'⨟' => BB_SEMI,
+'⫪' => TOP,
+'⫫' => BOT)
 
 
 const UNICODE_OPS_REVERSE = Dict{Kind,Symbol}()
