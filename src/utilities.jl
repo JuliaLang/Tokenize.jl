@@ -130,7 +130,8 @@ readchar(io::IO) = eof(io) ? EOF_CHAR : read(io, Char)
     0x00002af7 <= c <= 0x00002afa ||
     0x00002b30 <= c <= 0x00002b44 ||
     0x00002b47 <= c <= 0x00002b4c ||
-    0x0000ffe9 <= c <= 0x0000ffec
+    0x0000ffe9 <= c <= 0x0000ffec ||
+    0x00002aea <= c <= 0x00002aeb
 end
 
 function dotop2(pc, dpc)
