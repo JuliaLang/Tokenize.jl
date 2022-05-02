@@ -569,7 +569,7 @@
             LEFT_TACK, # ⊣
             PERP, # ⟂
             TOP, # ⫪
-            BOT # ⫫
+            BOT, # ⫫
         end_comparison,
 
         # Level 7
