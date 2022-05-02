@@ -666,6 +666,8 @@
             DIVISION_SIGN, # ÷
             REM, # %
             UNICODE_DOT, # ⋅
+            UNICODE_DOT2, # ·
+            UNICODE_DOT3, # ·
             RING_OPERATOR, # ∘
             MULTIPLICATION_SIGN, # ×
             BACKSLASH, # \
@@ -1367,6 +1369,8 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '￪' => HALFWIDTH_UPWARDS_ARROW,
 '￬' => HALFWIDTH_DOWNWARDS_ARROW,
 '⋅' => UNICODE_DOT,
+'·' => UNICODE_DOT2,
+'·' => UNICODE_DOT3,
 '…' => LDOTS,
 '⁝' => TRICOLON,
 '⋮' => VDOTS,
