@@ -666,8 +666,6 @@
             DIVISION_SIGN, # ÷
             REM, # %
             UNICODE_DOT, # ⋅
-            UNICODE_DOT2, # ·
-            UNICODE_DOT3, # ·
             RING_OPERATOR, # ∘
             MULTIPLICATION_SIGN, # ×
             BACKSLASH, # \
@@ -1368,9 +1366,9 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '⥯' => DOWNWARDS_HARPOON_WITH_BARB_LEFT_BESIDE_UPWARDS_HARPOON_WITH_BARB_RIGHT,
 '￪' => HALFWIDTH_UPWARDS_ARROW,
 '￬' => HALFWIDTH_DOWNWARDS_ARROW,
+'·' => UNICODE_DOT,
+'·' => UNICODE_DOT,
 '⋅' => UNICODE_DOT,
-'·' => UNICODE_DOT2,
-'·' => UNICODE_DOT3,
 '…' => LDOTS,
 '⁝' => TRICOLON,
 '⋮' => VDOTS,
@@ -1483,6 +1481,7 @@ UNICODE_OPS_REVERSE[DDDOT] = :(...)
 UNICODE_OPS_REVERSE[TRANSPOSE] = Symbol(".'")
 UNICODE_OPS_REVERSE[ANON_FUNC] = :(->)
 UNICODE_OPS_REVERSE[WHERE] = :where
+UNICODE_OPS_REVERSE[UNICODE_DOT] = Symbol("⋅")
 if VERSION >= v"1.6"
     str = """
     begin
