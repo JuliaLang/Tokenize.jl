@@ -813,6 +813,9 @@ end
 
 # We just consumed a ", """, `, or ```
 function read_string(l::Lexer, kind::Tokens.Kind)
+    can_interpolate =
+        l.last_token !== Tokens.IDENTIFIER &&
+        kind in (Tokens.STRING, Tokens.TRIPLE_STRING, Tokens.CMD, Tokens.TRIPLE_CMD)
     while true
         c = readchar(l)
         if c == '\\'
@@ -824,7 +827,7 @@ function read_string(l::Lexer, kind::Tokens.Kind)
         elseif eof(c)
             return false
         end
-        if c == '$'
+        if can_interpolate && c == '$'
             c = readchar(l)
             if string_terminated(l, kind)
                 return true
@@ -1012,7 +1015,7 @@ function is_identifier_char(c::Char)
     c == EOF_CHAR && return false
     return Base.is_id_char(c)
 end
-            
+
 const MAX_KW_LENGTH = 10
 
 function lex_identifier(l::Lexer{IO_t,T}, c) where {IO_t,T}
