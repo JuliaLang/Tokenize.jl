@@ -461,11 +461,11 @@ end
     @test length(collect(tokenize("\"\$(())\""))) == 2
     @test length(collect(tokenize("\"\$(#=inline ) comment=#\"\")\""))) == 2
     @test length(collect(tokenize("\"\$(string(`inline ')' cmd`)\"\")\""))) == 2
-    # These would require special interpolation support in the parse (Base issue #3150).
-    # If that gets implemented, thses should all be adjust to `== 2`
     @test length(collect(tokenize("`\$((``))`"))) == 2
     @test length(collect(tokenize("`\$(#=inline ) comment=#``)`"))) == 2
     @test length(collect(tokenize("`\$(\"inline ) string\"*string(``))`"))) == 2
+    @test length(collect(tokenize("""raw"hel\$\\"lo\""""))) == 3
+    @test length(collect(tokenize("""r"hel\$\\"lo\""""))) == 3
 end
 
 
