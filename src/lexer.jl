@@ -813,9 +813,7 @@ end
 
 # We just consumed a ", """, `, or ```
 function read_string(l::Lexer, kind::Tokens.Kind)
-    can_interpolate =
-        l.last_token !== Tokens.IDENTIFIER &&
-        kind in (Tokens.STRING, Tokens.TRIPLE_STRING, Tokens.CMD, Tokens.TRIPLE_CMD)
+    can_interpolate = l.last_token !== Tokens.IDENTIFIER
     while true
         c = readchar(l)
         if c == '\\'
