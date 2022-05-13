@@ -1405,7 +1405,8 @@ const UNICODE_OPS = Dict{Char, Kind}(
 '⌿' => NOT_SLASH,
 '⨟' => BB_SEMI,
 '⫪' => TOP,
-'⫫' => BOT)
+'⫫' => BOT,
+'−' => MINUS)
 
 
 const UNICODE_OPS_REVERSE = Dict{Kind,Symbol}()
