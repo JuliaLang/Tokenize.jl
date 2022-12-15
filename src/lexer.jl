@@ -403,34 +403,39 @@ function lex_whitespace(l::Lexer)
     return emit(l, Tokens.WHITESPACE)
 end
 
-function lex_comment(l::Lexer, doemit=true)
+function lex_comment(l::Lexer)
     readon(l)
     if peekchar(l) != '='
         while true
             pc = peekchar(l)
             if pc == '\n' || eof(pc)
-                return doemit ? emit(l, Tokens.COMMENT) : EMPTY_TOKEN(token_type(l))
+                return emit(l, Tokens.COMMENT)
             end
             readchar(l)
         end
     else
-        pc = '#'
         c = readchar(l) # consume the '='
-        n_start, n_end = 1, 0
+        skip = true  # true => c was part of the prev comment marker pair
+        nesting = 1
         while true
             if eof(c)
-                return doemit ? emit_error(l, Tokens.EOF_MULTICOMMENT) : EMPTY_TOKEN(token_type(l))
+                return emit_error(l, Tokens.EOF_MULTICOMMENT)
             end
             nc = readchar(l)
-            if c == '#' && nc == '='
-                n_start += 1
-            elseif c == '=' && nc == '#' && pc != '#'
-                n_end += 1
+            if skip
+                skip = false
+            else
+                if c == '#' && nc == '='
+                    nesting += 1
+                    skip = true
+                elseif c == '=' && nc == '#'
+                    nesting -= 1
+                    skip = true
+                    if nesting == 0
+                        return emit(l, Tokens.COMMENT)
+                    end
+                end
             end
-            if n_start == n_end
-                return doemit ? emit(l, Tokens.COMMENT) : EMPTY_TOKEN(token_type(l))
-            end
-            pc = c
             c = nc
         end
     end

@@ -6,6 +6,13 @@ const T = Tokenize.Tokens
 
 tok(str, i = 1) = collect(tokenize(str))[i]
 
+function toks(str)
+    ts = [untokenize(t, str)=>Tokens.exactkind(t) for t in tokenize(str, Tokens.RawToken)]
+    @test ts[end] == (""=>T.ENDMARKER)
+    pop!(ts)
+    ts
+end
+
 @testset "tokens" begin
     for s in ["a", IOBuffer("a")]
         l = tokenize(s)
@@ -570,6 +577,9 @@ end
 @testset "comments" begin
     s = "#=# text=#"
     @test length(collect(tokenize(s, Tokens.RawToken))) == 2
+
+    @test toks("#=#==#=#") == ["#=#==#=#"=>T.COMMENT]
+    @test toks("#=#==#=")  == ["#=#==#="=>T.ERROR]
 end
 
 @testset "invalid hexadecimal" begin
