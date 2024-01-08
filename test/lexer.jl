@@ -624,6 +624,9 @@ end
     if VERSION >= v"1.6.0"
         push!(ops, raw"<-- <-->")
     end
+    if VERSION >= v"1.10.0-"
+        push!(ops, raw"⥺ ⥷")
+    end
     allops = split(join(ops, " "), " ")
     @test all(s->Base.isoperator(Symbol(s)) == Tokens.isoperator(first(collect(tokenize(s))).kind), allops)
 end
