@@ -358,7 +358,7 @@ end
     @test tok("1234x", 2).kind        == T.IDENTIFIER
 end
 
-@testset "floats with trailing `.` " begin
+@testset "numbers with trailing `.` " begin
     @test tok("1.0").kind == Tokens.FLOAT
     @test tok("1.a").kind == Tokens.FLOAT
     @test tok("1.(").kind == Tokens.FLOAT
@@ -373,7 +373,10 @@ end
     @test tok("1.").kind == Tokens.FLOAT
     @test tok("1.\"text\" ").kind == Tokens.FLOAT
 
-    @test tok("1..").kind  == Tokens.INTEGER
+    @test toks("1..")    == ["1"=>Tokens.INTEGER,   ".."=>Tokens.DDOT]
+    @test toks(".1..")   == [".1"=>Tokens.FLOAT,    ".."=>Tokens.DDOT]
+    @test toks("0x01..") == ["0x01"=>Tokens.HEX_INT, ".."=>Tokens.DDOT]
+
     @test T.kind.(collect(tokenize("1f0./1"))) == [T.FLOAT, T.OP, T.INTEGER, T.ENDMARKER]
 end
 
