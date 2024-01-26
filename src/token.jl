@@ -48,6 +48,9 @@ TOKEN_ERROR_DESCRIPTION = Dict{TokenError, String}(
 
 abstract type AbstractToken end
 
+"""
+Each [`Token`](@ref) is represented by where it starts and ends, what string it contains and what type it is.
+"""
 struct Token <: AbstractToken
     kind::Kind
     # Offsets into a string or buffer
@@ -66,6 +69,9 @@ Token(kind, startposition, endposition, startbyte, endbyte, val, NO_ERR, false, 
 end
 Token() = Token(ERROR, (0,0), (0,0), 0, 0, "", UNKNOWN, false, false)
 
+"""
+Like [`Token`](@ref), but without the `val` field.
+"""
 struct RawToken <: AbstractToken
     kind::Kind
     # Offsets into a string or buffer

@@ -72,7 +72,7 @@ Lexer(str::AbstractString, T::Type{TT} = Token) where TT <: AbstractToken = Lexe
 
 Returns an `Iterable` containing the tokenized input. Can be reverted by e.g.
 `join(untokenize.(tokenize(x)))`. Setting `T` chooses the type of token
-produced by the lexer (`Token` or `RawToken`).
+produced by the lexer ([`Token`](@ref) or [`RawToken`](@ref)).
 """
 tokenize(x, ::Type{Token}) = Lexer(x, Token)
 tokenize(x, ::Type{RawToken}) = Lexer(x, RawToken)
@@ -110,7 +110,7 @@ end
 """
     startpos(l::Lexer)
 
-Return the latest `Token`'s starting position.
+Return the latest [`Token`](@ref)'s starting position.
 """
 startpos(l::Lexer) = l.token_startpos
 
@@ -126,7 +126,7 @@ Base.seekstart(l::Lexer) = seek(l.io, l.io_startpos)
 """
     seek2startpos!(l::Lexer)
 
-Sets the lexer's current position to the beginning of the latest `Token`.
+Sets the lexer's current position to the beginning of the latest [`Token`](@ref).
 """
 seek2startpos!(l::Lexer) = seek(l, startpos(l))
 
@@ -163,7 +163,7 @@ Base.seek(l::Lexer, pos) = seek(l.io, pos)
 """
     start_token!(l::Lexer)
 
-Updates the lexer's state such that the next  `Token` will start at the current
+Updates the lexer's state such that the next  [`Token`](@ref) will start at the current
 position.
 """
 function start_token!(l::Lexer)
@@ -246,7 +246,7 @@ end
 """
     emit(l::Lexer, kind::Kind, err::TokenError=Tokens.NO_ERR)
 
-Returns a `Token` of kind `kind` with contents `str` and starts a new `Token`.
+Returns a [`Token`](@ref) of kind `kind` with contents `str` and starts a new [`Token`](@ref).
 """
 function emit(l::Lexer{IO_t,Token}, kind::Kind, err::TokenError = Tokens.NO_ERR) where IO_t
     suffix = false
@@ -295,7 +295,7 @@ end
 """
     emit_error(l::Lexer, err::TokenError=Tokens.UNKNOWN)
 
-Returns an `ERROR` token with error `err` and starts a new `Token`.
+Returns an `ERROR` token with error `err` and starts a new [`Token`](@ref).
 """
 function emit_error(l::Lexer, err::TokenError = Tokens.UNKNOWN)
     return emit(l, Tokens.ERROR, err)
@@ -309,7 +309,7 @@ end
 """
     next_token(l::Lexer)
 
-Returns the next `Token`.
+Returns the next [`Token`](@ref).
 """
 function next_token(l::Lexer, start = true)
     start && start_token!(l)

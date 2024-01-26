@@ -14,8 +14,8 @@ The goals of this package is to be
 
 #### Tokenization
 
-The function `tokenize` is the main entrypoint for generating `Token`s.
-It takes a string or a buffer and creates an iterator that will sequentially return the next `Token` until the end of string or buffer. The argument to `tokenize` can either be a `String`, `IOBuffer` or an `IOStream`.
+The function `tokenize` is the main entrypoint for generating [`Token`](@ref)s.
+It takes a string or a buffer and creates an iterator that will sequentially return the next [`Token`](@ref) until the end of string or buffer. The argument to `tokenize` can either be a `String`, `IOBuffer` or an `IOStream`.
 
 ```jl
 julia> collect(tokenize("function f(x) end"))
@@ -30,11 +30,11 @@ julia> collect(tokenize("function f(x) end"))
  1,18-1,17        ENDMARKER      ""
 ```
 
-#### `Token`s
+#### [`Token`](@ref)s
 
-Each `Token` is represented by where it starts and ends, what string it contains and what type it is.
+Each [`Token`](@ref) is represented by where it starts and ends, what string it contains and what type it is.
 
-The API for a `Token` (non exported from the `Tokenize.Tokens` module) is.
+The API for a [`Token`](@ref) (non exported from the `Tokenize.Tokens` module) is.
 
 ```julia
 startpos(t)::Tuple{Int, Int} # row and column where the token start
