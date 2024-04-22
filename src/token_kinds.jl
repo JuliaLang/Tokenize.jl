@@ -37,6 +37,7 @@
         NEW,
         OUTER,
         PRIMITIVE,
+        PUBLIC,
         QUOTE,
         RETURN,
         STRUCT,

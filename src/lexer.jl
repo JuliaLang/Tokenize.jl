@@ -14,7 +14,7 @@ import ..Tokens: AbstractToken, Token, RawToken, Kind, TokenError, UNICODE_OPS, 
 import ..Tokens: FUNCTION, ABSTRACT, IDENTIFIER, BAREMODULE, BEGIN, BREAK, CATCH, CONST, CONTINUE,
                  DO, ELSE, ELSEIF, END, EXPORT, FALSE, FINALLY, FOR, FUNCTION, GLOBAL, LET, LOCAL, IF,
                  IMPORT, IMPORTALL, MACRO, MODULE, OUTER, QUOTE, RETURN, TRUE, TRY, TYPE, USING, WHILE, ISA, IN,
-                 MUTABLE, PRIMITIVE, STRUCT, WHERE
+                 MUTABLE, PRIMITIVE, PUBLIC, STRUCT, WHERE
 
 
 export tokenize
@@ -1090,6 +1090,7 @@ Tokens.MODULE,
 Tokens.MUTABLE,
 Tokens.OUTER,
 Tokens.PRIMITIVE,
+Tokens.PUBLIC,
 Tokens.QUOTE,
 Tokens.RETURN,
 Tokens.STRUCT,
