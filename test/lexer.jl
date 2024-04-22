@@ -270,6 +270,7 @@ end
                     "module",
                     "mutable",
                     "primitive",
+                    "public",
                     "quote",
                     "return",
                     "struct",
